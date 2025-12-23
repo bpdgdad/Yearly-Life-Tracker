@@ -1,0 +1,1858 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Yearly Life Betterment Tracker</title>
+  <style>
+    :root {
+      --bg:#0b1020; --panel:#111a33; --panel2:#0f1730; --text:#e7ecff; --muted:#aab3d6;
+      --accent:#7aa2ff; --danger:#ff6b6b; --ok:#6bffb3; --border:rgba(231,236,255,.12);
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius:16px;
+      --pad:14px;
+      font-synthesis-weight:none;
+    }
+    * { box-sizing:border-box; }
+    body {
+      margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: radial-gradient(1200px 900px at 20% 10%, rgba(122,162,255,.18), transparent 60%),
+                  radial-gradient(900px 700px at 80% 70%, rgba(107,255,179,.10), transparent 55%),
+                  var(--bg);
+      color:var(--text);
+    }
+    header {
+      position:sticky; top:0; z-index:10;
+      background: linear-gradient(180deg, rgba(11,16,32,.95), rgba(11,16,32,.70));
+      backdrop-filter: blur(10px);
+      border-bottom:1px solid var(--border);
+    }
+    .topbar {
+      display:flex; gap:10px; align-items:center; justify-content:space-between;
+      padding: 12px 14px;
+      max-width:1200px; margin:0 auto;
+    }
+    .brand {
+      display:flex; flex-direction:column; gap:2px;
+    }
+    .brand h1 { font-size:16px; margin:0; letter-spacing:.2px; }
+    .brand .sub { font-size:12px; color:var(--muted); }
+    .actions {
+      display:flex; flex-wrap:wrap; gap:8px; align-items:center; justify-content:flex-end;
+    }
+    button, .btn {
+      border:1px solid var(--border);
+      background:rgba(17,26,51,.65);
+      color:var(--text);
+      padding:10px 12px;
+      border-radius:12px;
+      cursor:pointer;
+      box-shadow:none;
+      font-weight:600;
+    }
+    button:hover { border-color: rgba(122,162,255,.45); }
+    button.danger { border-color: rgba(255,107,107,.55); }
+    button.danger:hover { border-color: rgba(255,107,107,.85); }
+    button.primary { border-color: rgba(122,162,255,.65); background: rgba(122,162,255,.12); }
+    input[type="file"] { display:none; }
+    .layout {
+      max-width:1200px; margin: 14px auto; padding: 0 14px 30px;
+      display:grid; grid-template-columns: 290px 1fr; gap:14px;
+    }
+    @media (max-width: 980px) {
+      .layout { grid-template-columns: 1fr; }
+      .sidebar { position:relative; }
+    }
+    .card {
+      background: rgba(17,26,51,.55);
+      border:1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+    .sidebar { padding: var(--pad); }
+    .group {
+      margin: 10px 0;
+      border:1px solid var(--border);
+      border-radius: 14px;
+      overflow:hidden;
+      background: rgba(15,23,48,.65);
+    }
+    .group summary {
+      list-style:none;
+      cursor:pointer;
+      padding: 12px 12px;
+      font-weight:800;
+      display:flex; align-items:center; justify-content:space-between;
+    }
+    .group summary::-webkit-details-marker { display:none; }
+    .group .items { padding: 6px; border-top:1px solid var(--border); }
+    .navbtn {
+      width:100%;
+      text-align:left;
+      border-radius: 12px;
+      padding: 10px 10px;
+      margin: 6px 0;
+      background: rgba(17,26,51,.55);
+      border:1px solid rgba(231,236,255,.10);
+      font-weight:700;
+    }
+    .navbtn.active {
+      border-color: rgba(122,162,255,.65);
+      background: rgba(122,162,255,.14);
+    }
+    .main { padding: var(--pad); }
+    .sheetTitle { display:flex; align-items:flex-start; justify-content:space-between; gap:10px; }
+    .sheetTitle h2 { margin:0; font-size:18px; }
+    .meta { font-size:12px; color:var(--muted); margin-top:3px; }
+    .grid {
+      display:grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .field {
+      grid-column: span 6;
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+    .field.full { grid-column: 1 / -1; }
+    .field.third { grid-column: span 4; }
+    .field.quarter { grid-column: span 3; }
+    label { font-size:12px; color:var(--muted); font-weight:700; }
+    input, select, textarea {
+      width:100%;
+      border-radius: 12px;
+      border:1px solid rgba(231,236,255,.14);
+      background: rgba(11,16,32,.55);
+      color: var(--text);
+      padding: 10px 10px;
+      outline:none;
+    }
+    textarea {
+      min-height: 110px;
+      resize: vertical;
+      line-height: 1.25;
+    }
+    .formActions {
+      display:flex; gap:10px; flex-wrap:wrap; align-items:center;
+      margin-top: 10px;
+    }
+    .divider {
+      height:1px; background: var(--border);
+      margin: 14px 0;
+    }
+    .list {
+      display:grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .entry {
+      border:1px solid rgba(231,236,255,.12);
+      border-radius: 14px;
+      padding: 12px;
+      background: rgba(15,23,48,.55);
+    }
+    .entryTop {
+      display:flex; gap:10px; align-items:flex-start; justify-content:space-between;
+      margin-bottom: 8px;
+    }
+    .entryTitle {
+      font-weight:900; font-size:14px; margin:0;
+    }
+    .pill {
+      display:inline-block; font-size:12px; padding:4px 8px;
+      border-radius: 999px; border:1px solid rgba(231,236,255,.14);
+      color: var(--muted);
+    }
+    .kv {
+      display:grid;
+      grid-template-columns: 160px 1fr;
+      gap: 6px 10px;
+      font-size: 13px;
+      margin-top: 8px;
+    }
+    @media (max-width: 680px) {
+      .kv { grid-template-columns: 1fr; }
+      .field { grid-column: 1 / -1; }
+    }
+    .k { color: var(--muted); font-weight:700; }
+    .v { white-space: pre-wrap; }
+    .toast {
+      position:fixed; bottom: 16px; left: 50%; transform: translateX(-50%);
+      background: rgba(17,26,51,.92);
+      border: 1px solid rgba(231,236,255,.18);
+      padding: 10px 12px; border-radius: 12px; box-shadow: var(--shadow);
+      font-weight:700; font-size: 13px;
+      display:none;
+      max-width: 92vw;
+    }
+    dialog {
+      border:none; border-radius: 18px; padding:0;
+      background: rgba(17,26,51,.98);
+      color: var(--text);
+      width: min(520px, 92vw);
+      box-shadow: var(--shadow);
+    }
+    dialog::backdrop {
+      background: rgba(0,0,0,.6);
+      backdrop-filter: blur(3px);
+    }
+    .modal {
+      padding: 14px;
+      border:1px solid rgba(231,236,255,.12);
+      border-radius: 18px;
+    }
+    .modal h3 { margin: 0 0 6px 0; }
+    .modal p { margin: 0 0 10px 0; color: var(--muted); }
+    .modalActions { display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap; }
+    .small { font-size:12px; color: var(--muted); }
+    a.link { color: var(--accent); text-decoration:none; font-weight:800; }
+  </style>
+</head>
+<body>
+<header>
+  <div class="topbar">
+    <div class="brand">
+      <h1>Yearly Life Betterment Tracker</h1>
+      <div class="sub">Offline-first • data saved on this device • export/import a single CSV</div>
+    </div>
+    <div class="actions">
+      <button class="primary" id="btnExport">Export CSV</button>
+      <label class="btn" for="fileImport">Import CSV</label>
+      <input id="fileImport" type="file" accept=".csv,text/csv" />
+      <button class="danger" id="btnClear">Clear all data</button>
+    </div>
+  </div>
+</header>
+
+<div class="layout">
+  <aside class="card sidebar" id="sidebar"></aside>
+  <main class="card main">
+    <div class="sheetTitle">
+      <div>
+        <h2 id="sheetName">Loading…</h2>
+        <div class="meta" id="sheetMeta"></div>
+      </div>
+      <div class="actions" style="justify-content:flex-end">
+        <button id="btnNew" class="primary">New entry</button>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <section id="formSection" style="display:none">
+      <div class="small" id="formHint"></div>
+      <form id="entryForm" autocomplete="off">
+        <div class="grid" id="fieldsGrid"></div>
+        <div class="formActions">
+          <button type="submit" class="primary" id="btnSave">Save</button>
+          <button type="button" id="btnCancel">Cancel</button>
+          <button type="button" class="danger" id="btnDelete" style="display:none">Delete entry</button>
+        </div>
+      </form>
+      <div class="divider"></div>
+    </section>
+
+    <section>
+      <div class="small" id="listHint"></div>
+      <div class="list" id="entriesList"></div>
+    </section>
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<dialog id="clearDialog">
+  <div class="modal">
+    <h3>Clear all data?</h3>
+    <p>This will permanently erase all saved entries on <strong>this device</strong>. To confirm, type <strong>CLEAR</strong> below.</p>
+    <div class="field full">
+      <label for="clearText">Type CLEAR to confirm</label>
+      <input id="clearText" type="text" placeholder="CLEAR" />
+    </div>
+    <div class="modalActions" style="margin-top:12px">
+      <button id="clearCancel">Cancel</button>
+      <button class="danger" id="clearConfirm">Clear all</button>
+    </div>
+    <div class="small" style="margin-top:10px">
+      Tip: Export a CSV first if you want a backup.
+    </div>
+  </div>
+</dialog>
+
+<script>
+/** === Schema pulled from your spreadsheet === */
+const SCHEMA = {
+  "Week_Tracker": [
+    {
+      "key": "category",
+      "label": "Category",
+      "type": "select_or_text"
+    },
+    {
+      "key": "mon",
+      "label": "Mon",
+      "type": "boolean"
+    },
+    {
+      "key": "tue",
+      "label": "Tue",
+      "type": "boolean"
+    },
+    {
+      "key": "wed",
+      "label": "Wed",
+      "type": "boolean"
+    },
+    {
+      "key": "thu",
+      "label": "Thu",
+      "type": "boolean"
+    },
+    {
+      "key": "fri",
+      "label": "Fri",
+      "type": "boolean"
+    },
+    {
+      "key": "sat",
+      "label": "Sat",
+      "type": "boolean"
+    },
+    {
+      "key": "sun",
+      "label": "Sun",
+      "type": "boolean"
+    },
+    {
+      "key": "weekly_summary",
+      "label": "Weekly Summary",
+      "type": "number"
+    }
+  ],
+  "Highlights_Wins": [
+    {
+      "key": "week_starting",
+      "label": "Week Starting",
+      "type": "date"
+    },
+    {
+      "key": "biggest_win",
+      "label": "Biggest Win",
+      "type": "textarea"
+    },
+    {
+      "key": "health_fitness_win",
+      "label": "Health/Fitness Win",
+      "type": "textarea"
+    },
+    {
+      "key": "disc_golf_win",
+      "label": "Disc Golf Win",
+      "type": "textarea"
+    },
+    {
+      "key": "youtube_win",
+      "label": "YouTube Win",
+      "type": "textarea"
+    },
+    {
+      "key": "vets_dg_win",
+      "label": "Vets DG Win",
+      "type": "textarea"
+    },
+    {
+      "key": "guitar_win",
+      "label": "Guitar Win",
+      "type": "textarea"
+    },
+    {
+      "key": "mindset_win",
+      "label": "Mindset Win",
+      "type": "textarea"
+    },
+    {
+      "key": "notes",
+      "label": "Notes",
+      "type": "textarea"
+    }
+  ],
+  "Month_View": [
+    {
+      "key": "month",
+      "label": "Month",
+      "type": "month"
+    },
+    {
+      "key": "overall_grade",
+      "label": "Overall Grade",
+      "type": "text"
+    },
+    {
+      "key": "weight_change_lbs",
+      "label": "Weight Change (+/- lbs)",
+      "type": "number"
+    },
+    {
+      "key": "steps_miles_total",
+      "label": "Steps / Miles Total",
+      "type": "number"
+    },
+    {
+      "key": "disc_golf_sessions",
+      "label": "Disc Golf Sessions (#)",
+      "type": "text"
+    },
+    {
+      "key": "putting_avg_c1_c1x",
+      "label": "Putting Avg % (C1/C1X)",
+      "type": "number"
+    },
+    {
+      "key": "fieldwork_sessions",
+      "label": "Fieldwork Sessions (#)",
+      "type": "text"
+    },
+    {
+      "key": "tournament_results_text",
+      "label": "Tournament Results (text)",
+      "type": "textarea"
+    },
+    {
+      "key": "mammoth_distance_total_mi",
+      "label": "Mammoth Distance Total (mi)",
+      "type": "number"
+    },
+    {
+      "key": "youtube_uploads",
+      "label": "YouTube Uploads (#)",
+      "type": "text"
+    },
+    {
+      "key": "youtube_avg_ctr",
+      "label": "YouTube Avg CTR (%)",
+      "type": "number"
+    },
+    {
+      "key": "youtube_subs_change",
+      "label": "YouTube Subs Change",
+      "type": "number"
+    },
+    {
+      "key": "vet_dg_events",
+      "label": "Vet DG Events (#)",
+      "type": "text"
+    },
+    {
+      "key": "vet_dg_membership_change",
+      "label": "Vet DG Membership Change",
+      "type": "number"
+    },
+    {
+      "key": "guitar_practice_hours",
+      "label": "Guitar Practice Hours",
+      "type": "number"
+    },
+    {
+      "key": "guitar_bpm_progress",
+      "label": "Guitar BPM Progress (+/-)",
+      "type": "number"
+    },
+    {
+      "key": "mental_health_avg_1_5",
+      "label": "Mental Health Avg (1–5)",
+      "type": "text"
+    },
+    {
+      "key": "sleep_avg_hrs",
+      "label": "Sleep Avg (hrs)",
+      "type": "number"
+    },
+    {
+      "key": "stress_avg_1_5",
+      "label": "Stress Avg (1–5)",
+      "type": "number"
+    },
+    {
+      "key": "rest_days",
+      "label": "Rest Days (#)",
+      "type": "number"
+    },
+    {
+      "key": "work_life_balance_score_1_5",
+      "label": "Work/Life Balance Score (1–5)",
+      "type": "number"
+    },
+    {
+      "key": "biggest_wins",
+      "label": "Biggest Wins",
+      "type": "textarea"
+    },
+    {
+      "key": "biggest_challenges",
+      "label": "Biggest Challenges",
+      "type": "textarea"
+    },
+    {
+      "key": "lessons_learned",
+      "label": "Lessons Learned",
+      "type": "textarea"
+    },
+    {
+      "key": "adjustments_for_next_month",
+      "label": "Adjustments for Next Month",
+      "type": "textarea"
+    },
+    {
+      "key": "notes_reflection",
+      "label": "Notes / Reflection",
+      "type": "textarea"
+    },
+    {
+      "key": "monthly_score_0_1",
+      "label": "Monthly Score (0–1)",
+      "type": "number"
+    }
+  ],
+  "Personal_Tracker": [
+    {
+      "key": "date",
+      "label": "Date",
+      "type": "date"
+    },
+    {
+      "key": "sleep_hrs",
+      "label": "Sleep (hrs)",
+      "type": "number"
+    },
+    {
+      "key": "stress_1_5",
+      "label": "Stress (1-5)",
+      "type": "number"
+    },
+    {
+      "key": "energy_1_5",
+      "label": "Energy (1-5)",
+      "type": "number"
+    },
+    {
+      "key": "mood_1_5",
+      "label": "Mood (1-5)",
+      "type": "number"
+    },
+    {
+      "key": "self_care_completed_yes_no",
+      "label": "Self-Care Completed (Yes/No)",
+      "type": "text"
+    },
+    {
+      "key": "daily_movement_yes_no",
+      "label": "Daily Movement (Yes/No)",
+      "type": "text"
+    },
+    {
+      "key": "screen_time_control_yes_no",
+      "label": "Screen Time Control (Yes/No)",
+      "type": "text"
+    },
+    {
+      "key": "journaling_reflection",
+      "label": "Journaling/Reflection",
+      "type": "textarea"
+    },
+    {
+      "key": "gratitude",
+      "label": "Gratitude",
+      "type": "textarea"
+    },
+    {
+      "key": "intentions_for_tomorrow",
+      "label": "Intentions for Tomorrow",
+      "type": "textarea"
+    },
+    {
+      "key": "wins_today",
+      "label": "Wins Today",
+      "type": "textarea"
+    },
+    {
+      "key": "notes",
+      "label": "Notes",
+      "type": "textarea"
+    }
+  ],
+  "Weight_Fitness": [
+    {
+      "key": "date",
+      "label": "Date",
+      "type": "date"
+    },
+    {
+      "key": "weight",
+      "label": "Weight",
+      "type": "number"
+    },
+    {
+      "key": "steps",
+      "label": "Steps",
+      "type": "number"
+    },
+    {
+      "key": "did_you_walk",
+      "label": "Did You Walk",
+      "type": "boolean"
+    },
+    {
+      "key": "miles",
+      "label": "Miles",
+      "type": "number"
+    },
+    {
+      "key": "did_you_workout",
+      "label": "Did You Workout",
+      "type": "boolean"
+    },
+    {
+      "key": "total_calories",
+      "label": "Total Calories",
+      "type": "number"
+    },
+    {
+      "key": "notes",
+      "label": "Notes",
+      "type": "textarea"
+    }
+  ],
+  "Mammoth_Tracker": [
+    {
+      "key": "week",
+      "label": "Week #",
+      "type": "number"
+    },
+    {
+      "key": "long_hike_goal",
+      "label": "Long Hike Goal",
+      "type": "text"
+    },
+    {
+      "key": "actual_long_day_distance",
+      "label": "Actual Long Day Distance",
+      "type": "number"
+    },
+    {
+      "key": "goal_hit",
+      "label": "Goal Hit",
+      "type": "boolean"
+    },
+    {
+      "key": "total_miles_for_the_week",
+      "label": "Total Miles for the Week",
+      "type": "number"
+    },
+    {
+      "key": "pack_weight_lb",
+      "label": "Pack Weight (lb)",
+      "type": "number"
+    },
+    {
+      "key": "hydration_good_ok_poor",
+      "label": "Hydration (Good/OK/Poor)",
+      "type": "select",
+      "options": [
+        "Good",
+        "OK",
+        "Poor"
+      ]
+    },
+    {
+      "key": "fuel_tested",
+      "label": "Fuel Tested",
+      "type": "text"
+    },
+    {
+      "key": "terrain",
+      "label": "Terrain",
+      "type": "select_or_text"
+    },
+    {
+      "key": "blisters_y_n",
+      "label": "Blisters (Y/N)",
+      "type": "boolean"
+    },
+    {
+      "key": "gear_notes",
+      "label": "Gear Notes",
+      "type": "textarea"
+    }
+  ],
+  "DG Practice Log": [
+    {
+      "key": "date",
+      "label": "Date",
+      "type": "date"
+    },
+    {
+      "key": "duration_min",
+      "label": "Duration (min)",
+      "type": "number"
+    },
+    {
+      "key": "session_type",
+      "label": "Session Type",
+      "type": "select_or_text"
+    },
+    {
+      "key": "focus_skill",
+      "label": "Focus Skill",
+      "type": "select_or_text"
+    },
+    {
+      "key": "discs_used",
+      "label": "Discs Used",
+      "type": "textarea"
+    },
+    {
+      "key": "c1_attempts",
+      "label": "C1 Attempts",
+      "type": "number"
+    },
+    {
+      "key": "c1_made",
+      "label": "C1 Made",
+      "type": "number"
+    },
+    {
+      "key": "make",
+      "label": "Make %",
+      "type": "number"
+    },
+    {
+      "key": "c2_attempts",
+      "label": "C2 Attempts",
+      "type": "number"
+    },
+    {
+      "key": "c2_made",
+      "label": "C2 Made",
+      "type": "number"
+    },
+    {
+      "key": "make",
+      "label": "Make %",
+      "type": "number"
+    },
+    {
+      "key": "forehand_reps",
+      "label": "Forehand Reps",
+      "type": "number"
+    },
+    {
+      "key": "backhand_reps",
+      "label": "Backhand Reps",
+      "type": "number"
+    },
+    {
+      "key": "fieldwork_notes",
+      "label": "Fieldwork Notes",
+      "type": "textarea"
+    },
+    {
+      "key": "wind",
+      "label": "Wind",
+      "type": "select_or_text"
+    },
+    {
+      "key": "fatigue",
+      "label": "Fatigue",
+      "type": "text"
+    },
+    {
+      "key": "result",
+      "label": "Result",
+      "type": "text"
+    }
+  ],
+  "DG Round Log": [
+    {
+      "key": "date",
+      "label": "Date",
+      "type": "date"
+    },
+    {
+      "key": "course",
+      "label": "Course",
+      "type": "text"
+    },
+    {
+      "key": "layout",
+      "label": "Layout",
+      "type": "text"
+    },
+    {
+      "key": "total_holes",
+      "label": "Total Holes",
+      "type": "number"
+    },
+    {
+      "key": "par",
+      "label": "Par",
+      "type": "number"
+    },
+    {
+      "key": "score",
+      "label": "Score",
+      "type": "number"
+    },
+    {
+      "key": "diff_to_par",
+      "label": "Diff to Par",
+      "type": "number"
+    },
+    {
+      "key": "c1_0_33ft",
+      "label": "C1% (0-33ft)",
+      "type": "number"
+    },
+    {
+      "key": "c1x_6_33ft",
+      "label": "C1X % 6-33ft",
+      "type": "number"
+    },
+    {
+      "key": "c2",
+      "label": "C2 %",
+      "type": "number"
+    },
+    {
+      "key": "misses_inside_20ft",
+      "label": "Misses inside 20ft",
+      "type": "text"
+    },
+    {
+      "key": "penalties",
+      "label": "Penalties",
+      "type": "text"
+    },
+    {
+      "key": "obs",
+      "label": "OBs",
+      "type": "text"
+    },
+    {
+      "key": "lost_discs",
+      "label": "Lost Discs",
+      "type": "text"
+    },
+    {
+      "key": "wind",
+      "label": "Wind",
+      "type": "select_or_text"
+    },
+    {
+      "key": "notes",
+      "label": "Notes",
+      "type": "textarea"
+    }
+  ],
+  "DG Tournament Log": [
+    {
+      "key": "date",
+      "label": "Date",
+      "type": "date"
+    },
+    {
+      "key": "event",
+      "label": "Event",
+      "type": "text"
+    },
+    {
+      "key": "course_s",
+      "label": "Course(s)",
+      "type": "textarea"
+    },
+    {
+      "key": "division",
+      "label": "Division",
+      "type": "text"
+    },
+    {
+      "key": "round_scores",
+      "label": "Round Scores",
+      "type": "number"
+    },
+    {
+      "key": "total_participants",
+      "label": "Total Participants",
+      "type": "number"
+    },
+    {
+      "key": "place",
+      "label": "Place",
+      "type": "number"
+    },
+    {
+      "key": "c1x",
+      "label": "C1X %",
+      "type": "number"
+    },
+    {
+      "key": "c1",
+      "label": "C1 %",
+      "type": "number"
+    },
+    {
+      "key": "c2",
+      "label": "C2 %",
+      "type": "number"
+    },
+    {
+      "key": "missed_inside_20ft",
+      "label": "Missed Inside 20ft",
+      "type": "text"
+    },
+    {
+      "key": "notes",
+      "label": "Notes",
+      "type": "textarea"
+    },
+    {
+      "key": "takeaways",
+      "label": "Takeaways",
+      "type": "textarea"
+    }
+  ],
+  "YouTube_Tracker": [
+    {
+      "key": "week",
+      "label": "Week#",
+      "type": "number"
+    },
+    {
+      "key": "title",
+      "label": "Title",
+      "type": "text"
+    },
+    {
+      "key": "upload_date",
+      "label": "Upload Date",
+      "type": "date"
+    },
+    {
+      "key": "length",
+      "label": "Length",
+      "type": "text"
+    },
+    {
+      "key": "video_type",
+      "label": "Video Type",
+      "type": "select_or_text"
+    },
+    {
+      "key": "category",
+      "label": "Category",
+      "type": "select_or_text"
+    },
+    {
+      "key": "subcategory",
+      "label": "Subcategory",
+      "type": "select_or_text"
+    },
+    {
+      "key": "hook",
+      "label": "Hook",
+      "type": "textarea"
+    },
+    {
+      "key": "thumbnail",
+      "label": "Thumbnail",
+      "type": "textarea"
+    },
+    {
+      "key": "topic",
+      "label": "Topic",
+      "type": "textarea"
+    },
+    {
+      "key": "ctr",
+      "label": "CTR %",
+      "type": "number"
+    },
+    {
+      "key": "average_view_duration",
+      "label": "Average View Duration",
+      "type": "number"
+    },
+    {
+      "key": "average_view",
+      "label": "Average View %",
+      "type": "number"
+    },
+    {
+      "key": "7_day_view",
+      "label": "7 Day View",
+      "type": "text"
+    },
+    {
+      "key": "total_view",
+      "label": "Total View",
+      "type": "number"
+    },
+    {
+      "key": "sub_change",
+      "label": "Sub Change",
+      "type": "number"
+    },
+    {
+      "key": "video_score",
+      "label": "Video Score",
+      "type": "number"
+    },
+    {
+      "key": "notes",
+      "label": "Notes",
+      "type": "textarea"
+    }
+  ],
+  "Lists": [
+    {
+      "key": "1a_beginner_tips",
+      "label": "1a - Beginner Tips",
+      "type": "text"
+    }
+  ],
+  "Youtube Video Ideas": [
+    {
+      "key": "skill_tutorial",
+      "label": "Skill Tutorial",
+      "type": "text"
+    },
+    {
+      "key": "gear_review",
+      "label": "Gear Review",
+      "type": "text"
+    },
+    {
+      "key": "course_gear",
+      "label": "Course Gear",
+      "type": "text"
+    },
+    {
+      "key": "lifestyle",
+      "label": "Lifestyle",
+      "type": "text"
+    },
+    {
+      "key": "beginner_tips",
+      "label": "Beginner Tips",
+      "type": "text"
+    },
+    {
+      "key": "challenge",
+      "label": "Challenge",
+      "type": "text"
+    },
+    {
+      "key": "experimentation",
+      "label": "Experimentation",
+      "type": "text"
+    },
+    {
+      "key": "quick_tip",
+      "label": "Quick Tip",
+      "type": "text"
+    },
+    {
+      "key": "20_video_ideas",
+      "label": "20 Video Ideas",
+      "type": "text"
+    }
+  ],
+  "Long Script Template": [
+    {
+      "key": "template",
+      "label": "Template",
+      "type": "text"
+    },
+    {
+      "key": "example",
+      "label": "Example",
+      "type": "text"
+    }
+  ],
+  "Short Script Template": [
+    {
+      "key": "template",
+      "label": "Template",
+      "type": "text"
+    },
+    {
+      "key": "example_of_template",
+      "label": "Example of Template",
+      "type": "text"
+    }
+  ],
+  "VetsDG_Tracker": [
+    {
+      "key": "date",
+      "label": "Date",
+      "type": "date"
+    },
+    {
+      "key": "entry_type",
+      "label": "Entry Type",
+      "type": "select"
+    },
+    {
+      "key": "event_name_organization",
+      "label": "Event Name/Organization",
+      "type": "textarea"
+    },
+    {
+      "key": "category",
+      "label": "Category",
+      "type": "select_or_text"
+    },
+    {
+      "key": "sponsors",
+      "label": "Sponsors",
+      "type": "text"
+    },
+    {
+      "key": "outreach",
+      "label": "Outreach",
+      "type": "text"
+    },
+    {
+      "key": "attendance",
+      "label": "Attendance",
+      "type": "number"
+    },
+    {
+      "key": "donation",
+      "label": "Donation",
+      "type": "number"
+    },
+    {
+      "key": "contact_status",
+      "label": "Contact Status",
+      "type": "text"
+    },
+    {
+      "key": "notes",
+      "label": "Notes",
+      "type": "textarea"
+    }
+  ],
+  "GuitarPractice_Tracker": [
+    {
+      "key": "date",
+      "label": "Date",
+      "type": "date"
+    },
+    {
+      "key": "practice_length_mins",
+      "label": "Practice Length (mins)",
+      "type": "text"
+    },
+    {
+      "key": "focus_area",
+      "label": "Focus Area",
+      "type": "select_or_text"
+    },
+    {
+      "key": "technique_skill",
+      "label": "Technique Skill",
+      "type": "select_or_text"
+    },
+    {
+      "key": "bpm_goal",
+      "label": "BPM Goal",
+      "type": "number"
+    },
+    {
+      "key": "bpm_achieved",
+      "label": "BPM Achieved",
+      "type": "number"
+    },
+    {
+      "key": "bpm_success",
+      "label": "BPM Success %",
+      "type": "number"
+    },
+    {
+      "key": "song_exercise",
+      "label": "Song/Exercise",
+      "type": "text"
+    },
+    {
+      "key": "diffiulty_1_5",
+      "label": "Diffiulty (1-5)",
+      "type": "number"
+    },
+    {
+      "key": "feeling",
+      "label": "Feeling",
+      "type": "select_or_text"
+    },
+    {
+      "key": "notes",
+      "label": "Notes",
+      "type": "textarea"
+    }
+  ],
+  "Certs_Tracker": [
+    {
+      "key": "date",
+      "label": "Date",
+      "type": "date"
+    },
+    {
+      "key": "cert_crisc_pmp",
+      "label": "Cert (CRISC/PMP)",
+      "type": "text"
+    },
+    {
+      "key": "domain_topic",
+      "label": "Domain/Topic",
+      "type": "select_or_text"
+    },
+    {
+      "key": "study_time_min",
+      "label": "Study Time (min)",
+      "type": "number"
+    },
+    {
+      "key": "practice_qs",
+      "label": "Practice Qs %",
+      "type": "number"
+    },
+    {
+      "key": "practice_exam_name",
+      "label": "Practice Exam Name",
+      "type": "text"
+    },
+    {
+      "key": "score",
+      "label": "Score",
+      "type": "number"
+    },
+    {
+      "key": "weak_areas",
+      "label": "Weak Areas",
+      "type": "textarea"
+    },
+    {
+      "key": "notes",
+      "label": "Notes",
+      "type": "textarea"
+    }
+  ]
+};
+
+const GROUPS = {
+  "Life & Reflection": [
+    "Week_Tracker",
+    "Highlights_Wins",
+    "Month_View",
+    "Personal_Tracker"
+  ],
+  "Health & Fitness": [
+    "Weight_Fitness",
+    "Mammoth_Tracker"
+  ],
+  "Disc Golf": [
+    "DG Practice Log",
+    "DG Round Log",
+    "DG Tournament Log"
+  ],
+  "Content Creation": [
+    "YouTube_Tracker",
+    "Youtube Video Ideas"
+  ],
+  "Reference": [
+    "Lists"
+  ],
+  "Content Creation (Templates)": [
+    "Long Script Template",
+    "Short Script Template"
+  ],
+  "Disc Golf & Outreach": [
+    "VetsDG_Tracker"
+  ],
+  "Skills & Hobbies": [
+    "GuitarPractice_Tracker"
+  ],
+  "Career & Learning": [
+    "Certs_Tracker"
+  ]
+};
+
+/** === Storage === */
+const STORAGE_KEY = "ylbt_data_v1";
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return { version: 1, updatedAt: null, data: {} };
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object") throw new Error("bad");
+    if (!parsed.data) parsed.data = {};
+    return parsed;
+  } catch (e) {
+    return { version: 1, updatedAt: null, data: {} };
+  }
+}
+
+function saveState(state) {
+  state.updatedAt = new Date().toISOString();
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+/** === CSV helpers (RFC4180-ish) === */
+function csvEscape(v) {
+  const s = (v ?? "").toString();
+  if (/[",\n\r]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+  return s;
+}
+
+function toCSV(rows) {
+  return rows.map(r => r.map(csvEscape).join(",")).join("\n");
+}
+
+// robust-ish CSV parser for our export format
+function parseCSV(text) {
+  const rows = [];
+  let row = [];
+  let i = 0;
+  let field = "";
+  let inQuotes = false;
+
+  while (i < text.length) {
+    const c = text[i];
+
+    if (inQuotes) {
+      if (c === '"') {
+        if (text[i+1] === '"') {
+          field += '"';
+          i += 2;
+          continue;
+        } else {
+          inQuotes = false;
+          i++;
+          continue;
+        }
+      } else {
+        field += c;
+        i++;
+        continue;
+      }
+    } else {
+      if (c === '"') {
+        inQuotes = true;
+        i++;
+        continue;
+      }
+      if (c === ",") {
+        row.push(field);
+        field = "";
+        i++;
+        continue;
+      }
+      if (c === "\n") {
+        row.push(field);
+        rows.push(row);
+        row = [];
+        field = "";
+        i++;
+        continue;
+      }
+      if (c === "\r") {
+        i++;
+        continue;
+      }
+      field += c;
+      i++;
+    }
+  }
+  row.push(field);
+  rows.push(row);
+  // trim trailing blank lines
+  while (rows.length && rows[rows.length-1].length === 1 && rows[rows.length-1][0] === "") rows.pop();
+  return rows;
+}
+
+/** === App state === */
+let state = loadState();
+let currentSheet = Object.keys(SCHEMA)[0];
+let editingId = null;
+
+/** === UI refs === */
+const sidebar = document.getElementById("sidebar");
+const sheetNameEl = document.getElementById("sheetName");
+const sheetMetaEl = document.getElementById("sheetMeta");
+const fieldsGrid = document.getElementById("fieldsGrid");
+const entriesList = document.getElementById("entriesList");
+const formSection = document.getElementById("formSection");
+const entryForm = document.getElementById("entryForm");
+const btnNew = document.getElementById("btnNew");
+const btnCancel = document.getElementById("btnCancel");
+const btnDelete = document.getElementById("btnDelete");
+const btnExport = document.getElementById("btnExport");
+const btnClear = document.getElementById("btnClear");
+const fileImport = document.getElementById("fileImport");
+const toast = document.getElementById("toast");
+
+const clearDialog = document.getElementById("clearDialog");
+const clearText = document.getElementById("clearText");
+const clearCancel = document.getElementById("clearCancel");
+const clearConfirm = document.getElementById("clearConfirm");
+const formHint = document.getElementById("formHint");
+const listHint = document.getElementById("listHint");
+
+function showToast(msg) {
+  toast.textContent = msg;
+  toast.style.display = "block";
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(() => toast.style.display = "none", 2200);
+}
+
+function ensureSheetData(sheet) {
+  if (!state.data[sheet]) state.data[sheet] = [];
+}
+
+function niceSheetTitle(sheet) {
+  return sheet.replace(/_/g, " ");
+}
+
+function buildSidebar() {
+  sidebar.innerHTML = "";
+  const help = document.createElement("div");
+  help.className = "small";
+  help.innerHTML = `
+    <div style="margin-bottom:10px">
+      <strong>Navigation</strong><br/>
+      Tap a screen below. Your data stays saved offline.<br/>
+      <span class="small">Export CSV for backups or moving devices.</span>
+    </div>
+  `;
+  sidebar.appendChild(help);
+
+  Object.entries(GROUPS).forEach(([groupName, sheets], idx) => {
+    const details = document.createElement("details");
+    details.className = "group";
+    if (idx === 0) details.open = true;
+
+    const summary = document.createElement("summary");
+    summary.innerHTML = `<span>${groupName}</span><span class="pill">${sheets.length}</span>`;
+    details.appendChild(summary);
+
+    const items = document.createElement("div");
+    items.className = "items";
+
+    sheets.forEach(s => {
+      const btn = document.createElement("button");
+      btn.className = "navbtn";
+      btn.textContent = niceSheetTitle(s);
+      btn.onclick = () => switchSheet(s);
+      btn.dataset.sheet = s;
+      items.appendChild(btn);
+    });
+
+    details.appendChild(items);
+    sidebar.appendChild(details);
+  });
+}
+
+function setActiveNav() {
+  document.querySelectorAll(".navbtn").forEach(b => {
+    b.classList.toggle("active", b.dataset.sheet === currentSheet);
+  });
+}
+
+function switchSheet(sheet) {
+  currentSheet = sheet;
+  editingId = null;
+  formSection.style.display = "none";
+  render();
+}
+
+function autoToday() {
+  const d = new Date();
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth()+1).padStart(2,"0");
+  const dd = String(d.getDate()).padStart(2,"0");
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+function buildInput(field, value) {
+  const wrap = document.createElement("div");
+  wrap.className = "field";
+  // layout hints
+  const labelLower = field.label.toLowerCase();
+  if (field.type === "textarea") wrap.classList.add("full");
+  if (["date","month"].includes(field.type)) wrap.classList.add("third");
+  if (field.type === "boolean") wrap.classList.add("quarter");
+  if (labelLower.includes("notes") || labelLower.includes("summary") || labelLower.includes("reflection") || labelLower.includes("wins")) wrap.classList.add("full");
+
+  const lab = document.createElement("label");
+  lab.textContent = field.label;
+  const id = `f_${field.key}`;
+  lab.setAttribute("for", id);
+
+  let input;
+  if (field.type === "textarea") {
+    input = document.createElement("textarea");
+    input.rows = 5;
+    input.placeholder = "Type here…";
+    input.value = value ?? "";
+  } else if (field.type === "date") {
+    input = document.createElement("input");
+    input.type = "date";
+    input.value = value ?? autoToday();
+  } else if (field.type === "month") {
+    input = document.createElement("input");
+    input.type = "month";
+    // allow "Month" text too; month input is best for quick selection
+    input.value = value ?? "";
+  } else if (field.type === "number") {
+    input = document.createElement("input");
+    input.type = "number";
+    input.inputMode = "decimal";
+    input.value = (value ?? "");
+    if (field.label.includes("%")) input.step = "0.1";
+  } else if (field.type === "boolean") {
+    input = document.createElement("select");
+    const optBlank = document.createElement("option");
+    optBlank.value = "";
+    optBlank.textContent = "—";
+    input.appendChild(optBlank);
+    ["Yes","No"].forEach(v => {
+      const opt = document.createElement("option");
+      opt.value = v;
+      opt.textContent = v;
+      input.appendChild(opt);
+    });
+    input.value = (value ?? "");
+  } else if (field.type === "select" && field.options) {
+    input = document.createElement("select");
+    const optBlank = document.createElement("option");
+    optBlank.value = "";
+    optBlank.textContent = "—";
+    input.appendChild(optBlank);
+    field.options.forEach(v => {
+      const opt = document.createElement("option");
+      opt.value = v;
+      opt.textContent = v;
+      input.appendChild(opt);
+    });
+    input.value = (value ?? "");
+  } else {
+    input = document.createElement("input");
+    input.type = "text";
+    input.value = value ?? "";
+  }
+
+  input.id = id;
+  input.name = field.key;
+  wrap.appendChild(lab);
+  wrap.appendChild(input);
+  return wrap;
+}
+
+function openNewForm() {
+  editingId = null;
+  formSection.style.display = "block";
+  btnDelete.style.display = "none";
+  formHint.textContent = "Add a new entry. Date fields default to today.";
+  renderForm({});
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function openEditForm(entry) {
+  editingId = entry._id;
+  formSection.style.display = "block";
+  btnDelete.style.display = "inline-block";
+  formHint.textContent = "Editing an existing entry.";
+  renderForm(entry);
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function renderForm(entry) {
+  fieldsGrid.innerHTML = "";
+  const fields = SCHEMA[currentSheet] || [];
+  fields.forEach(f => {
+    const node = buildInput(f, entry[f.key]);
+    fieldsGrid.appendChild(node);
+  });
+}
+
+function readFormValues() {
+  const fields = SCHEMA[currentSheet] || [];
+  const obj = {};
+  fields.forEach(f => {
+    const el = document.getElementById(`f_${f.key}`);
+    let v = el ? el.value : "";
+    if (f.type === "number") {
+      // keep empty as empty
+      if (v !== "" && !isNaN(Number(v))) v = Number(v);
+    }
+    obj[f.key] = v;
+  });
+  return obj;
+}
+
+function entryTitle(entry) {
+  // pick a nice title: Date if exists, otherwise first non-empty field
+  const fields = SCHEMA[currentSheet] || [];
+  const dateField = fields.find(f => f.type === "date" && entry[f.key]);
+  if (dateField) return `${entry[dateField.key]}`;
+  const monthField = fields.find(f => f.type === "month" && entry[f.key]);
+  if (monthField) return `${entry[monthField.key]}`;
+  for (const f of fields) {
+    const v = entry[f.key];
+    if (v !== "" && v != null) return `${f.label}: ${v}`;
+  }
+  return "Entry";
+}
+
+function renderEntries() {
+  ensureSheetData(currentSheet);
+  const rows = state.data[currentSheet] || [];
+  entriesList.innerHTML = "";
+
+  sheetNameEl.textContent = niceSheetTitle(currentSheet);
+  sheetMetaEl.textContent = `${rows.length} saved entr${rows.length === 1 ? "y" : "ies"} • last updated: ${state.updatedAt ? new Date(state.updatedAt).toLocaleString() : "never"}`;
+
+  listHint.textContent = rows.length
+    ? "Tap an entry to edit. Your most recent entries appear first."
+    : "No entries yet — hit “New entry” to start.";
+
+  const fields = (SCHEMA[currentSheet] || []).filter(f => f.label.toLowerCase() !== "template" && f.label.toLowerCase() !== "example");
+
+  // newest first
+  [...rows].slice().reverse().forEach(entry => {
+    const card = document.createElement("div");
+    card.className = "entry";
+
+    const top = document.createElement("div");
+    top.className = "entryTop";
+
+    const left = document.createElement("div");
+    const title = document.createElement("div");
+    title.className = "entryTitle";
+    title.textContent = entryTitle(entry);
+    const idpill = document.createElement("div");
+    idpill.className = "pill";
+    idpill.textContent = "Edit";
+    left.appendChild(title);
+    left.appendChild(document.createElement("div")).className = "meta";
+    left.lastChild.textContent = "Tap to open";
+    top.appendChild(left);
+    top.appendChild(idpill);
+
+    card.appendChild(top);
+
+    const kv = document.createElement("div");
+    kv.className = "kv";
+
+    fields.forEach(f => {
+      const v = entry[f.key];
+      if (v === "" || v == null) return;
+      const k = document.createElement("div");
+      k.className = "k";
+      k.textContent = f.label;
+      const val = document.createElement("div");
+      val.className = "v";
+      val.textContent = (v ?? "").toString();
+      kv.appendChild(k);
+      kv.appendChild(val);
+    });
+
+    card.appendChild(kv);
+
+    card.onclick = () => openEditForm(entry);
+    entriesList.appendChild(card);
+  });
+}
+
+function render() {
+  buildSidebar();
+  setActiveNav();
+  renderEntries();
+}
+
+/** === CRUD === */
+btnNew.addEventListener("click", openNewForm);
+
+btnCancel.addEventListener("click", () => {
+  formSection.style.display = "none";
+  editingId = null;
+});
+
+entryForm.addEventListener("submit", (e) => {
+  e.preventDefault();
+  ensureSheetData(currentSheet);
+  const values = readFormValues();
+
+  if (editingId) {
+    const idx = state.data[currentSheet].findIndex(x => x._id === editingId);
+    if (idx >= 0) {
+      state.data[currentSheet][idx] = { ...state.data[currentSheet][idx], ...values };
+    }
+    showToast("Entry updated");
+  } else {
+    const entry = { _id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()), ...values };
+    state.data[currentSheet].push(entry);
+    showToast("Entry saved");
+  }
+
+  saveState(state);
+  formSection.style.display = "none";
+  editingId = null;
+  render();
+});
+
+btnDelete.addEventListener("click", () => {
+  if (!editingId) return;
+  const ok = confirm("Delete this entry? This cannot be undone.");
+  if (!ok) return;
+  ensureSheetData(currentSheet);
+  state.data[currentSheet] = (state.data[currentSheet] || []).filter(x => x._id !== editingId);
+  saveState(state);
+  showToast("Entry deleted");
+  formSection.style.display = "none";
+  editingId = null;
+  render();
+});
+
+/** === Export / Import === */
+btnExport.addEventListener("click", () => {
+  // long format: Sheet,RowID,Field,Value
+  const rows = [["Sheet","RowID","Field","Value"]];
+  Object.keys(SCHEMA).forEach(sheet => {
+    ensureSheetData(sheet);
+    (state.data[sheet] || []).forEach(entry => {
+      const rowId = entry._id || "";
+      (SCHEMA[sheet] || []).forEach(f => {
+        const v = entry[f.key];
+        if (v === "" || v == null) return;
+        rows.push([sheet, rowId, f.label, (v ?? "").toString()]);
+      });
+    });
+  });
+
+  const csv = toCSV(rows);
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "Yearly_Life_Betterment_Tracker_ALL_DATA.csv";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+  showToast("CSV exported");
+});
+
+fileImport.addEventListener("change", async (e) => {
+  const file = e.target.files && e.target.files[0];
+  if (!file) return;
+
+  const text = await file.text();
+  const rows = parseCSV(text);
+  if (!rows.length) {
+    showToast("CSV was empty");
+    return;
+  }
+
+  const header = rows[0].map(h => (h||"").trim());
+  const idxSheet = header.indexOf("Sheet");
+  const idxRow = header.indexOf("RowID");
+  const idxField = header.indexOf("Field");
+  const idxValue = header.indexOf("Value");
+
+  if (idxSheet === -1 || idxRow === -1 || idxField === -1 || idxValue === -1) {
+    alert("This CSV doesn't look like an export from this app. Expected columns: Sheet, RowID, Field, Value.");
+    return;
+  }
+
+  const incoming = {};
+
+  for (let i=1; i<rows.length; i++) {
+    const r = rows[i];
+    const sheet = (r[idxSheet] || "").trim();
+    const rowId = (r[idxRow] || "").trim();
+    const fieldLabel = (r[idxField] || "").trim();
+    const value = (r[idxValue] ?? "").toString();
+
+    if (!SCHEMA[sheet]) continue;
+
+    if (!incoming[sheet]) incoming[sheet] = new Map();
+    if (!incoming[sheet].has(rowId)) incoming[sheet].set(rowId, { _id: rowId || (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()+i)) });
+
+    const entry = incoming[sheet].get(rowId);
+    const f = (SCHEMA[sheet] || []).find(x => x.label === fieldLabel);
+    if (!f) continue;
+
+    // coerce types
+    if (f.type === "number") {
+      const n = Number(value);
+      entry[f.key] = isNaN(n) ? value : n;
+    } else {
+      entry[f.key] = value;
+    }
+  }
+
+  // merge incoming into state (replace per sheet)
+  Object.keys(SCHEMA).forEach(sheet => {
+    if (!incoming[sheet]) return;
+    state.data[sheet] = Array.from(incoming[sheet].values());
+  });
+
+  saveState(state);
+  showToast("CSV imported");
+  fileImport.value = "";
+  render();
+});
+
+/** === Clear all === */
+btnClear.addEventListener("click", () => {
+  clearText.value = "";
+  clearDialog.showModal();
+  setTimeout(() => clearText.focus(), 50);
+});
+
+clearCancel.addEventListener("click", (e) => {
+  e.preventDefault();
+  clearDialog.close();
+});
+
+clearConfirm.addEventListener("click", (e) => {
+  e.preventDefault();
+  if ((clearText.value || "").trim().toUpperCase() !== "CLEAR") {
+    showToast("Type CLEAR to confirm");
+    clearText.focus();
+    return;
+  }
+  localStorage.removeItem(STORAGE_KEY);
+  state = loadState();
+  showToast("All data cleared");
+  clearDialog.close();
+  formSection.style.display = "none";
+  editingId = null;
+  render();
+});
+
+/** === Boot === */
+(function init() {
+  // Ensure all sheets exist
+  Object.keys(SCHEMA).forEach(ensureSheetData);
+  // default sheet: Life & Reflection -> Week_Tracker if exists
+  if (SCHEMA["Week_Tracker"]) currentSheet = "Week_Tracker";
+  render();
+})();
+</script>
+</body>
+</html>
