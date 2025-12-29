@@ -183,9 +183,8 @@
         { id: "youtube", label: "YouTube", icon: "youtube", tabs: [
           { id: "yt_tracker", label: "YouTube Tracker", type: "log_youtube" },
           { id: "yt_ideas", label: "Video Ideas", type: "log_yt_ideas" },
-          { id: "yt_long_template", label: "Long Script Notes", type: "template_long" },
-          { id: "yt_short_template", label: "Short Script Notes", type: "template_short" }
-        ]},
+          { id: "yt_long_ref", label: "Long Script (Ref)", type: "ref_yt_long" },
+          { id: "yt_short_ref", label: "Short Script (Ref)", type: "ref_yt_short" }]},
         { id: "skills", label: "Skills & Certs", icon: "skills", tabs: [
           { id: "guitar", label: "Guitar Practice", type: "log_guitar" },
           { id: "certs", label: "Certs Tracker", type: "log_certs" }
@@ -223,6 +222,11 @@
     appConfig.groups.forEach(g => g.tabs.forEach(t => (t.groupId=g.id, tabConfigs[t.id]=t)));
     // Reference table: Marathon / long-distance training plan (read-only)
     const marathonPlanRef = {"headers": ["Week", "Phase", "Week Starting", "Weekly Mileage Target", "Long Walk Distance", "Pack Weight", "Goal Pace (min/mi)", "Primary Focus", "Notes"], "rows": [["1", "Phase 1 – Base Foundation", "2026-01-05", "10", "5", "", "20:00", "Build endurance & efficiency", "Fuel every 45–60 min on long walks"], ["2", "Phase 1 – Base Foundation", "2026-01-12", "11", "5", "", "20:00", "Build endurance & efficiency", "Fuel every 45–60 min on long walks"], ["3", "Phase 1 – Base Foundation", "2026-01-19", "12", "6", "", "20:00", "Build endurance & efficiency", "Fuel every 45–60 min on long walks"], ["4", "Phase 1 – Base Foundation", "2026-01-26", "13", "6", "", "20:00", "Build endurance & efficiency", "Fuel every 45–60 min on long walks"], ["5", "Phase 1 – Base Foundation", "2026-02-02", "14", "7", "", "20:00", "Build endurance & efficiency", "Fuel every 45–60 min on long walks"], ["6", "Phase 1 – Base Foundation", "2026-02-09", "15", "7", "", "20:00", "Build endurance & efficiency", "Fuel every 45–60 min on long walks"], ["7", "Phase 1 – Base Foundation", "2026-02-16", "16", "8", "", "20:00", "Build endurance & efficiency", "Fuel every 45–60 min on long walks"], ["8", "Phase 1 – Base Foundation", "2026-02-23", "18", "8", "", "20:00", "Build endurance & efficiency", "Fuel every 45–60 min on long walks"], ["9", "Phase 2 – Distance & Pace", "2026-03-02", "18", "9", "5–10 lbs", "19:45", "Build endurance & efficiency", "Fuel every 45–60 min on long walks"], ["10", "Phase 2 – Distance & Pace", "2026-03-09", "19", "9", "5–10 lbs", "19:45", "Build endurance & efficiency", "Fuel every 45–60 min on long walks"], ["11", "Phase 2 – Distance & Pace", "2026-03-16", "20", "10", "5–10 lbs", "19:45", "Build endurance & efficiency", "Fuel every 45–60 min on long walks"], ["12", "Phase 2 – Distance & Pace", "2026-03-23", "21", "10", "5–10 lbs", "19:45", "Build endurance & efficiency", "Fuel every 45–60 min on long walks"], ["13", "Phase 2 – Distance & Pace", "2026-03-30", "22", "11", "5–10 lbs", "19:45", "Build endurance & efficiency", "Fuel every 45–60 min on long walks"], ["14", "Phase 2 – Distance & Pace", "2026-04-06", "23", "11", "5–10 lbs", "19:45", "Build endurance & efficiency", "Fuel every 45–60 min on long walks"], ["15", "Phase 2 – Distance & Pace", "2026-04-13", "24", "12", "5–10 lbs", "19:45", "Build endurance & efficiency", "Fuel every 45–60 min on long walks"], ["16", "Phase 2 – Distance & Pace", "2026-04-20", "25", "12", "5–10 lbs", "19:45", "Build endurance & efficiency", "Fuel every 45–60 min on long walks"], ["17", "Phase 2 – Distance & Pace", "2026-04-27", "25", "12", "5–10 lbs", "19:45", "Build endurance & efficiency", "Fuel every 45–60 min on long walks"], ["18", "Phase 3 – Pack & Endurance", "2026-05-04", "25", "13", "10–18 lbs", "19:30", "Build endurance & efficiency", "Fuel every 45–60 min on long walks"], ["19", "Phase 3 – Pack & Endurance", "2026-05-11", "26", "13", "10–18 lbs", "19:30", "Build endurance & efficiency", "Fuel every 45–60 min on long walks"], ["20", "Phase 3 – Pack & Endurance", "2026-05-18", "27", "14", "10–18 lbs", "19:30", "Build endurance & efficiency", "Fuel every 45–60 min on long walks"], ["21", "Phase 3 – Pack & Endurance", "2026-05-25", "28", "14", "10–18 lbs", "19:30", "Build endurance & efficiency", "Fuel every 45–60 min on long walks"], ["22", "Phase 3 – Pack & Endurance", "2026-06-01", "29", "15", "10–18 lbs", "19:30", "Build endurance & efficiency", "Fuel every 45–60 min on long walks"], ["23", "Phase 3 – Pack & Endurance", "2026-06-08", "30", "15", "10–18 lbs", "19:30", "Build endurance & efficiency", "Fuel every 45–60 min on long walks"], ["24", "Phase 3 – Pack & Endurance", "2026-06-15", "31", "16", "10–18 lbs", "19:30", "Build endurance & efficiency", "Fuel every 45–60 min on long walks"], ["25", "Phase 3 – Pack & Endurance", "2026-06-22", "32", "16", "10–18 lbs", "19:30", "Build endurance & efficiency", "Fuel every 45–60 min on long walks"], ["26", "Phase 3 – Pack & Endurance", "2026-06-29", "32", "16", "10–18 lbs", "19:30", "Build endurance & efficiency", "Fuel every 45–60 min on long walks"], ["27", "Phase 4 – Peak Specificity", "2026-07-06", "30", "16", "18–20 lbs", "19:30", "Build endurance & efficiency", "Fuel every 45–60 min on long walks"], ["28", "Phase 4 – Peak Specificity", "2026-07-13", "32", "18", "18–20 lbs", "19:30", "Build endurance & efficiency", "Fuel every 45–60 min on long walks"], ["29", "Phase 4 – Peak Specificity", "2026-07-20", "34", "20", "18–20 lbs", "19:30", "Build endurance & efficiency", "Fuel every 45–60 min on long walks"], ["30", "Phase 4 – Peak Specificity", "2026-07-27", "36", "18", "18–20 lbs", "19:30", "Build endurance & efficiency", "Fuel every 45–60 min on long walks"], ["31", "Phase 4 – Peak Specificity", "2026-08-03", "38", "20", "18–20 lbs", "19:30", "Build endurance & efficiency", "Fuel every 45–60 min on long walks"], ["32", "Phase 4 – Peak Specificity", "2026-08-10", "36", "16", "18–20 lbs", "19:30", "Build endurance & efficiency", "Fuel every 45–60 min on long walks"], ["33", "Phase 4 – Peak Specificity", "2026-08-17", "34", "14", "18–20 lbs", "19:30", "Build endurance & efficiency", "Fuel every 45–60 min on long walks"], ["34", "Phase 5 – Taper", "2026-08-24", "20", "12", "Light pack", "Easy", "Build endurance & efficiency", "Fuel every 45–60 min on long walks"], ["35", "Phase 5 – Taper", "2026-08-31", "14", "8", "Light pack", "Easy", "Build endurance & efficiency", "Fuel every 45–60 min on long walks"], ["36", "Phase 5 – Taper", "2026-09-07", "8", "6", "Light pack", "Easy", "Build endurance & efficiency", "Fuel every 45–60 min on long walks"]]};
+
+    // Reference tables: YouTube Script Templates (read-only)
+    const ytLongScriptRef = {"headers": ["Section", "Prompt / What to Write", "Example"], "rows": [["VIDEO TITLE", " [Clear benefit + disc golf keyword + specific result]", "Fix Your Forehand Roll — Gain Control & Distance Fast"], ["VIDEO TYPE", " [Tutorial / Vlog / Challenge / Review]", "Tutorial"], ["PRIMARY KEYWORD", " [e.g., beginner forehand, putting drill]", "disc golf forehand beginner"], ["SECONDARY KEYWORDS", " [disc golf tips, beginner disc golf, etc.]", "forehand form disc golf; beginner disc golf tips; forehand wrist roll"], ["THUMBNAIL TEXT", " [3–5 word punchy phrase, e.g., FIX YOUR FOREHAND]", "STOP ROLLING IT"], ["", "", ""], ["Hook,HOOK (0–5s)", " [Call out the problem + promise the solution in plain language]", " \"If your forehand wobbles or burns over, this one mistake is killing your throw.\""], ["Hook,Example", " \"You’re losing distance on your forehand because of THIS mistake. Let’s fix it in a few minutes.\"", " Call out the mistake and promise a quick fix"], ["", "", ""], ["Intro,INTRO (5–15s)", " [Who you are + what this video will do for them]", " \"I’m Bryan with BP Disc Golfing Dad, helping beginners throw with confidence. Today I’ll show you how to stop rolling your wrist so your forehand flies cleaner and farther.\""], ["Intro,Example", " \"I’m Bryan with BP Disc Golfing Dad—helping beginners throw with confidence. Today you’ll learn ______ so you can ______.\"", " Who you are + what they’ll gain"], ["", "", ""], ["Context,WHO THIS IS FOR", " [Beginners / Rec players / People struggling with X]", " beginners or rec players struggling with forehand consistency"], ["Context,WHY IT MATTERS", " [Short explanation of the pain point and payoff]", " wrist roll causes wobble, early turn, lost distance, and frustration"], ["", "", ""], ["Section 1 - Problem,SECTION TITLE", " [What’s going wrong]", " The Wrist Roll Problem"], ["Section 1 - Problem,Describe the common mistake in simple terms", "", " players try to flick their wrist for power"], ["Section 1 - Problem,Describe what it looks like (visible symptoms)", "", " wrist turns over, disc comes out wobbly or nose down"], ["Section 1 - Problem,Describe what it causes on the course (scores, frustration)", "", " early turnover, inconsistent release, lost distance"], ["Section 1 - Problem,B-ROLL NOTES", " [Clips of bad form / missed putts / early releases]", " exaggerated bad forehand; slow-mo wobble; burned-over shot"], ["", "", ""], ["Section 2 - Concept,SECTION TITLE", " [The core idea / fix]", " How a Clean Forehand Works"], ["Section 2 - Concept,Explain the correct concept in 1–2 simple sentences", "", " power comes from elbow lead, not wrist roll"], ["Section 2 - Concept,Use an analogy (hammer, door, whip, rail, etc.)", "", " throwing a hammer straight forward, not flipping it"], ["Section 2 - Concept,Highlight 1–3 key checkpoints (e.g., elbow leads, wrist neutral)", "", " elbow leads; wrist neutral; palm facing target"], ["Section 2 - Concept,B-ROLL NOTES", " [Slow-mo of correct form, freeze frame on checkpoints]", " slow-mo correct form; freeze frame on wrist position"], ["", "", ""], ["Section 3 - Drill 1,SECTION TITLE", " [Drill name #1]", " Towel Forehand Drill"], ["Section 3 - Drill 1,Purpose", " [What this drill fixes]", " removes disc and isolates wrist position"], ["Section 3 - Drill 1,Step-by-step instructions (1–5)", "", " 1 hold towel flat 2 slow forehand motion 3 snap straight forward"], ["Section 3 - Drill 1,Common mistakes during the drill", "", " rolling wrist; muscling with arm"], ["Section 3 - Drill 1,Coaching cues", " [\"Feel like…\", \"Focus on…\"]", " \"Keep the towel flat\"; \"Elbow first, wrist last\""], ["Section 3 - Drill 1,How many reps / sets to do", "", " 20 reps x 2 sets"], ["Section 3 - Drill 1,B-ROLL NOTES", " [Front and side angle of drill]", " front and side angles of towel drill"], ["#VALUE!", "", ""], ["Section 4 - Drill 2 (optional),SECTION TITLE", " [Drill name #2]", " Standstill Forehand Throws"], ["Section 4 - Drill 2,Purpose", " [Secondary fix or progression]", " apply drill to real disc without footwork"], ["Section 4 - Drill 2,Step-by-step instructions (1–5)", "", " standstill; slow pull; controlled release"], ["Section 4 - Drill 2,What they should feel when doing it right", "", " smooth snap with no wobble"], ["Section 4 - Drill 2,How to know they’re improving", "", " straighter flights; cleaner release"], ["Section 4 - Drill 2,B-ROLL NOTES", " [Slow-mo, close-ups, footwork, grip]", " before vs after standstill throws"], ["#VALUE!", "", ""], ["Section 5 - Full Motion,SECTION TITLE", " [Put it together]", " Add Footwork Back In"], ["Section 5 - Full Motion,Explain how to go from drill to full throw/putt", "", " towel → standstill → one-step → full throw"], ["Section 5 - Full Motion,Progression", " [Standstill → one-step → full run-up]", " increase power only after clean release"], ["Section 5 - Full Motion,Remind them of 1–2 key focus points", "", " elbow leads; wrist stays neutral"], ["Section 5 - Full Motion,B-ROLL NOTES", " [Before/after clips, flight paths, real throws]", " full-speed throw + slow-mo replay"], ["#VALUE!", "", ""], ["Practice Plan,PRACTICE PLAN INTRO", " [\"Here’s exactly how to train this…\"]", " \"Here’s how to train this during the week"], ["Practice Plan,Day 1–2", " [Example plan – reps, sets, focuses]", " towel drill + 10 standstill throws"], ["Practice Plan,Day 3–4", " [Add second drill or more distance]", " standstill throws only; focus on clean release"], ["Practice Plan,Day 5–7", " [Mix in course application or field work]", " light fieldwork; record yourself"], ["Practice Plan,Expected timeline to see improvement (e.g., 1–2 weeks)", "", " improvement in 1–2 weeks"], ["#VALUE!", "", ""], ["Recap,RECAP KEY POINTS (bullet style in script)", "", ""], ["Recap,\"1) ______\"", "", "\"1) Stop flicking the wrist\""], ["Recap,\"2) ______\"", "", "\"2) Lead with the elbow\""], ["Recap,\"3) ______\"", "", "\"3) Keep the wrist neutral\""], ["Recap,One sentence summary of the transformation", " [\"Do THIS instead of THAT and you’ll ______.\"]", "Transformation"], ["#VALUE!", "", ""], ["CTA,PRIMARY CTA", " [Comment prompt – ask a question or invite feedback]", " Ask viewer engagement question"], ["CTA,Example", " \"Tell me in the comments what part of your forehand gives you the most trouble.\"", " \"Comment if your forehand is your weakest shot.\""], ["CTA,SECOND CTA", " [Subscribe / next video suggestion]", " Subscribe reminder"], ["CTA,Example", " \"If this helped, subscribe for more beginner disc golf tips every other week.\"", " \"Subscribe for beginner disc golf tips every other week.\""], ["CTA,OPTIONAL END CARD HOOK", " [Mention related video or playlist to watch next]", " Watch next video on forehand grip"], ["#VALUE!", "", ""], ["Notes,VIDEO NOTES", " [Any reminders for filming location, weather, gear, outfit, sponsors]", " film in open field with clear background"], ["Notes,SPONSOR / SHOUTOUT NOTES", " [Vets Disc Golf, local shops, etc.]", " mention Vets Disc Golf"], ["Notes,EDITING NOTES", " [Text on screen, slow-mo moments, arrows, labels]", " arrows on wrist; slow-mo overlays"], ["Notes,THUMBNAIL IDEAS", " [Face emotion, disc shown, text placement, background]", " shocked face + forehand grip + bold text"], ["Notes,POSTING NOTES", " [Title variations, description links, hashtags, pin comment idea]", ""]]};
+    const ytShortScriptRef = {"headers": ["Section/Prompt", "What to Write", "Example"], "rows": [["VIDEO TITLE", " [Short and searchable title — e.g., \"Stop Throwing Nose-Up!\"]", "Stop Rolling Your Forehand Wrist"], ["SHORT TYPE", " [Tip / Drill / Review / Motivation / Teaser]", "Quick Tip"], ["PRIMARY KEYWORD", " [disc golf beginner / putting drill]", "disc golf forehand beginner"], ["", "", ""], ["Hook,HOOK (0–2s)", " [Call out the problem or promise the benefit]", " \"Your forehand wobbles because of THIS.\""], ["Hook,Example", " \"Stop throwing nose-up!\"", " fast visual of bad wobble forehand"], ["", "", ""], ["Problem,WHAT'S WRONG", " [Describe issue in 1 short sentence]", " you're flicking your wrist for power"], ["Problem,Example", " \"You're tilting the disc up and losing distance.\"", " exaggerated wrist roll causing turnover"], ["", "", ""], ["Fix,MAIN TIP / DRILL", " [Explain the fix in simple terms — one idea only]", " lead with your elbow and keep the wrist neutral"], ["Fix,Example", " \"Keep your wrist neutral and shoulder level.\"", " hammer analogy — elbow first, wrist follows"], ["", "", ""], ["Demo,DEMO VISUAL", " [Show quick rep, slow-mo, or angle change]", " towel drill or slow standstill forehand"], ["Demo,Examples", " before/after clips, angle comparison, grip close-up", " side angle clean release; no wobble flight"], ["", "", ""], ["Recap,RECAP ONE SENTENCE", " [Summarize the fix]", " elbow leads, wrist stays neutral, forehand flies clean"], ["Recap,Example", " \"Elbow leads, wrist neutral, disc flat.\"", " text on screen summarizing the tip"], ["", "", ""], ["CTA,CALL TO ACTION", " [Engagement + funnel to long video]", " watch the full breakdown on my channel"], ["CTA,Examples", " \"Try it today and comment how it worked!\" OR \"Full fix on my channel.\"", " follow for beginner disc golf tips"]]};
+
 
 
     function loadState(){ try{ const raw=localStorage.getItem(STORAGE_KEY); return raw?JSON.parse(raw):{} }catch(e){ return {} } }
@@ -328,6 +332,12 @@
         const rows = marathonPlanRef.rows;
         addSection("Marathon_Training_Plan", headers, rows);
       }
+
+      // YouTube Script Templates (reference)
+      {
+        addSection("YouTube_Long_Script_Ref", ytLongScriptRef.headers, ytLongScriptRef.rows);
+        addSection("YouTube_Short_Script_Ref", ytShortScriptRef.headers, ytShortScriptRef.rows);
+      }
       }
 
       // DG Practice
@@ -377,23 +387,6 @@
         const rows=(s.entries||[]).map(r=>[r.skill||"",r.gear||"",r.courseGear||"",r.lifestyle||"",r.beginner||"",r.challenge||"",r.experimentation||"",r.quick||"",r.ideas||""]);
         addSection("Youtube_Video_Ideas",headers,rows);
       }
-
-      // Long template
-      {
-        const s=appState.yt_long_template;
-        const headers=["Long Script Template","Example"];
-        const rows=(s.entries||[]).map(r=>[r.template||"",r.example||""]);
-        addSection("Long_Script_Template",headers,rows);
-      }
-
-      // Short template
-      {
-        const s=appState.yt_short_template;
-        const headers=["Template","Example of Template"];
-        const rows=(s.entries||[]).map(r=>[r.template||"",r.example||""]);
-        addSection("Short_Script_Template",headers,rows);
-      }
-
       // Guitar
       {
         const s=appState.guitar;
@@ -496,6 +489,12 @@
       // Marathon Plan (reference spreadsheet)
       {
         addSheet("Marathon_Training_Plan", [marathonPlanRef.headers, ...marathonPlanRef.rows]);
+
+      // YouTube Script Templates (reference)
+      {
+        addSheet("YouTube_Long_Script_Ref", [ytLongScriptRef.headers, ...ytLongScriptRef.rows]);
+        addSheet("YouTube_Short_Script_Ref", [ytShortScriptRef.headers, ...ytShortScriptRef.rows]);
+      }
       }
 
       // DG Practice
@@ -544,22 +543,6 @@
         const headers=["Skill Tutorial","Gear Review","Course Gear","Lifestyle","Beginner Tips","Challenge","Experimentation","Quick Tip","20 Video Ideas"];
         const rows=(s.entries||[]).map(r=>[r.skill||"",r.gear||"",r.courseGear||"",r.lifestyle||"",r.beginner||"",r.challenge||"",r.experimentation||"",r.quick||"",r.ideas||""]);
         addSheet("Youtube_Video_Ideas", [headers, ...rows]);
-      }
-
-      // Long template
-      {
-        const s=appState.yt_long_template;
-        const headers=["Long Script Template","Example"];
-        const rows=(s.entries||[]).map(r=>[r.template||"",r.example||""]);
-        addSheet("Long_Script_Template", [headers, ...rows]);
-      }
-
-      // Short template
-      {
-        const s=appState.yt_short_template;
-        const headers=["Template","Example of Template"];
-        const rows=(s.entries||[]).map(r=>[r.template||"",r.example||""]);
-        addSheet("Short_Script_Template", [headers, ...rows]);
       }
 
       // Guitar
@@ -658,8 +641,8 @@ function iconSvg(kind){
         case "log_vetsdg": node=renderVetsDG(); break;
         case "log_youtube": node=renderYouTubeTracker(); break;
         case "log_yt_ideas": node=renderYTIdeas(); break;
-        case "template_long": node=renderYTLongTemplate(); break;
-        case "template_short": node=renderYTShortTemplate(); break;
+        case "ref_yt_long": node=renderYouTubeLongRef(); break;
+        case "ref_yt_short": node=renderYouTubeShortRef(); break;
         case "log_guitar": node=renderGuitar(); break;
         case "log_certs": node=renderCerts(); break;
         default:
@@ -1145,7 +1128,47 @@ function iconSvg(kind){
     ]});}
 
     
-    function renderMarathonPlanRef(){
+    
+    function renderRefTableCard(title, subtitle, refObj, csvName){
+      const section=document.createElement("section"); section.className="card";
+      const header=document.createElement("div"); header.className="card-header";
+      header.innerHTML=`<div><h2>${title}</h2><span>${subtitle||""}</span></div><div class="badge"><span>${(refObj.rows||[]).length}</span> rows</div>`;
+      section.appendChild(header);
+
+      const wrap=document.createElement("div"); wrap.className="table-wrapper";
+      const table=document.createElement("table");
+      const thead=document.createElement("thead");
+      const trh=document.createElement("tr");
+      (refObj.headers||[]).forEach(h=>{ const th=document.createElement("th"); th.textContent=h; trh.appendChild(th); });
+      thead.appendChild(trh); table.appendChild(thead);
+
+      const tbody=document.createElement("tbody");
+      (refObj.rows||[]).forEach(r=>{
+        const tr=document.createElement("tr");
+        r.forEach(v=>{ const td=document.createElement("td"); td.textContent=v; tr.appendChild(td); });
+        tbody.appendChild(tr);
+      });
+      table.appendChild(tbody); wrap.appendChild(table); section.appendChild(wrap);
+
+      const controls=document.createElement("div"); controls.className="controls-row";
+      const exportBtn=document.createElement("button"); exportBtn.type="button"; exportBtn.className="btn btn-primary";
+      exportBtn.textContent="Export CSV (Reference Tab)";
+      exportBtn.addEventListener("click",()=>{ exportCsv(refObj.headers||[], refObj.rows||[], csvName||"Reference.csv"); });
+      controls.appendChild(exportBtn);
+      section.appendChild(controls);
+
+      return section;
+    }
+
+    function renderYouTubeLongRef(){
+      return renderRefTableCard("YouTube Long Script (Reference)", "Read-only template from your spreadsheet.", ytLongScriptRef, "YouTube_Long_Script_Ref.csv");
+    }
+    function renderYouTubeShortRef(){
+      return renderRefTableCard("YouTube Short Script (Reference)", "Read-only template from your spreadsheet.", ytShortScriptRef, "YouTube_Short_Script_Ref.csv");
+    }
+
+
+function renderMarathonPlanRef(){
       const section=document.createElement("section"); section.className="card";
       const header=document.createElement("div"); header.className="card-header";
       header.innerHTML=`<div><h2>Marathon Training Plan (Reference)</h2><span>Read-only table from your spreadsheet.</span></div>
