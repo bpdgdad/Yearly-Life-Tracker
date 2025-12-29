@@ -258,6 +258,34 @@
           }
         }
       });
+
+      // Migration + richer state for Filming Checklist (phases + submissions)
+      try{
+        const tab = tabConfigs["yt_filming_checklist"];
+        if(tab && state["yt_filming_checklist"]){
+          const fc = state["yt_filming_checklist"];
+          const rows = Array.isArray(fc.rows) ? fc.rows : [];
+          const truthy = (v)=> {
+            const s = String(v||"").trim().toLowerCase();
+            return v===true || s==="yes" || s==="true" || s==="1" || s==="done";
+          };
+          if(!fc.draft){
+            fc.draft = {
+              tasks: rows.map(r=>({ phase: (r&&r[0])||"", task: (r&&r[1])||"", done: truthy(r&&r[2]) })),
+              notes: ""
+            };
+          }
+          if(!Array.isArray(fc.submissions)) fc.submissions = [];
+          if(!fc.view) fc.view = "draft";
+          if(typeof fc.activeIndex !== "number") fc.activeIndex = Math.max(0, fc.submissions.length-1);
+          // Keep rows in sync with draft if rows are missing (fresh install)
+          if(!rows.length && tab && tab.sheet){
+            const seed = (YT_BOOK.sheets[tab.sheet] && YT_BOOK.sheets[tab.sheet].rows) ? YT_BOOK.sheets[tab.sheet].rows : [];
+            fc.rows = JSON.parse(JSON.stringify(seed));
+            fc.draft.tasks = fc.rows.map(r=>({ phase:r[0]||"", task:r[1]||"", done: truthy(r[2]) }));
+          }
+        }
+      }catch(e){}
       return state;
     }
 
@@ -1158,7 +1186,227 @@ function iconSvg(kind){
     }
 
 
-    function renderYTSheet(tab){
+    
+    function renderFilmingChecklistPhased(tab){
+      const tabId = tab.id;
+      const state = appState[tabId];
+      const sheetName = tab.sheet;
+      const seedRows = (YT_BOOK.sheets[sheetName] && YT_BOOK.sheets[sheetName].rows) ? YT_BOOK.sheets[sheetName].rows : [];
+
+      // Ensure structure
+      if(!state.draft){
+        const truthy = (v)=>{ const s=String(v||"").trim().toLowerCase(); return v===true || s==="yes" || s==="true" || s==="1" || s==="done"; };
+        state.draft = { tasks: (state.rows||seedRows||[]).map(r=>({phase:r[0]||"", task:r[1]||"", done: truthy(r[2])})), notes:"" };
+      }
+      if(!Array.isArray(state.submissions)) state.submissions = [];
+      if(!state.view) state.view = "draft";
+      if(typeof state.activeIndex !== "number") state.activeIndex = Math.max(0, state.submissions.length-1);
+
+      // Helper: group tasks by phase
+      const groupByPhase = (tasks)=>{
+        const map = new Map();
+        tasks.forEach(t=>{
+          const phase = (t.phase||"").trim() || "OTHER";
+          if(!map.has(phase)) map.set(phase, []);
+          map.get(phase).push(t);
+        });
+        return Array.from(map.entries());
+      };
+
+      const section=document.createElement("section"); section.className="card";
+
+      const total = state.draft.tasks.length || 0;
+      const doneCount = state.draft.tasks.filter(t=>t.done).length;
+      const pct = total ? Math.round((doneCount/total)*100) : 0;
+
+      const header=document.createElement("div"); header.className="card-header";
+      header.innerHTML = `<div><h2>${sheetName}</h2><span>Phased checklist with submit → saved run</span></div>
+        <div class="badge"><span>${state.submissions.length}</span> submissions · <span>${pct}%</span> complete</div>`;
+      section.appendChild(header);
+
+      // Submitted view
+      if(state.view === "submitted" && state.submissions.length){
+        const active = state.submissions[Math.min(state.activeIndex, state.submissions.length-1)] || state.submissions[state.submissions.length-1];
+        const submittedAt = active.submittedAt ? new Date(active.submittedAt) : null;
+
+        const summary=document.createElement("div");
+        summary.style.margin="6px 0 10px";
+        summary.innerHTML = `
+          <div class="analytics-grid">
+            <div class="analytics-card"><div class="analytics-label">Submitted</div><div class="analytics-value">${submittedAt ? submittedAt.toLocaleString() : "—"}</div></div>
+            <div class="analytics-card"><div class="analytics-label">Tasks Done</div><div class="analytics-value">${active.doneCount || total}/${active.total || total}</div></div>
+            <div class="analytics-card"><div class="analytics-label">Completion</div><div class="analytics-value">${active.pct || 100}%</div></div>
+          </div>
+        `;
+        section.appendChild(summary);
+
+        if(active.notes){
+          const noteCard=document.createElement("div");
+          noteCard.className="helper-text";
+          noteCard.innerHTML = `<div class="helper-dot"></div><div><strong>Run Notes:</strong><div style="margin-top:4px;white-space:pre-wrap">${active.notes}</div></div>`;
+          section.appendChild(noteCard);
+        }
+
+        // History selector
+        const historyWrap=document.createElement("div");
+        historyWrap.style.marginTop="10px";
+        historyWrap.innerHTML = `<div class="card-header" style="padding:0;margin:0 0 6px"><div><h2 style="font-size:.9rem;margin:0">Completed Checklist</h2><span>View past submissions</span></div></div>`;
+        const sel=document.createElement("select"); sel.className="log-input";
+        const opts = state.submissions.map((s,i)=>({i, label: (()=>{ const d=s.submittedAt?new Date(s.submittedAt):null; return `${i+1}. ${d?d.toLocaleString():"(no date)"}`; })()}));
+        opts.reverse().forEach(o=>{
+          const op=document.createElement("option");
+          op.value=String(o.i); op.textContent=o.label;
+          if(o.i===state.activeIndex) op.selected=true;
+          sel.appendChild(op);
+        });
+        sel.addEventListener("change",()=>{ state.activeIndex=parseInt(sel.value,10); saveState(); renderScreen(); });
+        historyWrap.appendChild(sel);
+        section.appendChild(historyWrap);
+
+        // Render tasks (read-only)
+        const tasks = active.tasks || [];
+        const grouped = groupByPhase(tasks);
+        grouped.forEach(([phase, list])=>{
+          const box=document.createElement("div");
+          box.style.marginTop="10px";
+          box.innerHTML = `<div class="badge" style="justify-content:space-between;width:100%"><span>${phase}</span><span>${list.filter(t=>t.done).length}/${list.length}</span></div>`;
+          const inner=document.createElement("div");
+          inner.style.marginTop="6px";
+          list.forEach(t=>{
+            const row=document.createElement("div");
+            row.style.display="flex"; row.style.gap="8px"; row.style.alignItems="flex-start"; row.style.padding="4px 0";
+            row.innerHTML = `<span style="color:${t.done ? "var(--accent)" : "var(--text-muted)"};font-weight:700">${t.done ? "✓" : "•"}</span><div style="flex:1;white-space:pre-wrap">${t.task||""}</div>`;
+            inner.appendChild(row);
+          });
+          box.appendChild(inner);
+          section.appendChild(box);
+        });
+
+        const controls=document.createElement("div"); controls.className="controls-row";
+        const newBtn=document.createElement("button"); newBtn.type="button"; newBtn.className="btn btn-primary"; newBtn.textContent="Start new checklist";
+        newBtn.addEventListener("click",()=>{
+          if(confirm("Start a new filming checklist? This will reset the current checklist tasks back to not-done.")){
+            // reset draft to seed
+            const truthy=(v)=>{ const s=String(v||"").trim().toLowerCase(); return v===true || s==="yes" || s==="true" || s==="1" || s==="done"; };
+            state.rows = JSON.parse(JSON.stringify(seedRows));
+            state.draft = { tasks: state.rows.map(r=>({phase:r[0]||"", task:r[1]||"", done: truthy(r[2])})), notes:"" };
+            state.view = "draft";
+            saveState(); renderScreen();
+          }
+        });
+        controls.appendChild(newBtn);
+
+        const backBtn=document.createElement("button"); backBtn.type="button"; backBtn.className="btn"; backBtn.textContent="Back to checklist";
+        backBtn.addEventListener("click",()=>{ state.view="draft"; saveState(); renderScreen(); });
+        controls.appendChild(backBtn);
+
+        section.appendChild(controls);
+        return section;
+      }
+
+      // Draft view (editable)
+      const grouped = groupByPhase(state.draft.tasks);
+
+      grouped.forEach(([phase, list])=>{
+        const phaseCard=document.createElement("div");
+        phaseCard.style.marginTop="10px";
+        phaseCard.innerHTML = `<div class="badge" style="justify-content:space-between;width:100%"><span>${phase}</span><span>${list.filter(t=>t.done).length}/${list.length}</span></div>`;
+        const inner=document.createElement("div");
+        inner.style.marginTop="6px";
+        list.forEach(t=>{
+          const row=document.createElement("label");
+          row.style.display="flex"; row.style.gap="10px"; row.style.alignItems="flex-start"; row.style.padding="6px 0"; row.style.cursor="pointer";
+          const cb=document.createElement("input");
+          cb.type="checkbox"; cb.checked=!!t.done; cb.style.marginTop="3px";
+          cb.addEventListener("change",()=>{
+            t.done = cb.checked;
+            // sync to rows so exports keep working
+            const idx = state.draft.tasks.indexOf(t);
+            if(Array.isArray(state.rows) && state.rows[idx]) state.rows[idx][2] = t.done ? "Yes" : "No";
+            saveState(); renderScreen();
+          });
+          const text=document.createElement("div");
+          text.style.flex="1";
+          text.style.whiteSpace="pre-wrap";
+          text.innerHTML = `<div style="font-size:.8rem;color:${t.done ? "var(--text-main)" : "var(--text-main)"}">${t.task||""}</div>`;
+          row.appendChild(cb); row.appendChild(text);
+          inner.appendChild(row);
+        });
+        phaseCard.appendChild(inner);
+        section.appendChild(phaseCard);
+      });
+
+      // Notes + submit
+      const noteWrap=document.createElement("div");
+      noteWrap.style.marginTop="12px";
+      const noteLabel=document.createElement("div");
+      noteLabel.style.fontSize=".75rem"; noteLabel.style.color="var(--text-muted)"; noteLabel.style.marginBottom="6px";
+      noteLabel.textContent="Run notes (optional)";
+      noteWrap.appendChild(noteLabel);
+      const notes = makeTextarea(state.draft.notes||"", "Anything you want to remember about this filming session…", v=>{ state.draft.notes=v; saveState(); }, true);
+      noteWrap.appendChild(notes);
+      section.appendChild(noteWrap);
+
+      const controls=document.createElement("div"); controls.className="controls-row";
+      const submitBtn=document.createElement("button"); submitBtn.type="button"; submitBtn.className="btn btn-primary";
+      submitBtn.textContent="Submit checklist";
+      submitBtn.disabled = !(total && doneCount===total);
+      submitBtn.style.opacity = submitBtn.disabled ? "0.6" : "1";
+      submitBtn.addEventListener("click",()=>{
+        const tTotal = state.draft.tasks.length;
+        const tDone = state.draft.tasks.filter(t=>t.done).length;
+        if(tTotal && tDone !== tTotal){
+          alert("Finish all checklist items before submitting.");
+          return;
+        }
+        const submission = {
+          submittedAt: new Date().toISOString(),
+          total: tTotal,
+          doneCount: tDone,
+          pct: tTotal ? Math.round((tDone/tTotal)*100) : 0,
+          notes: state.draft.notes||"",
+          tasks: JSON.parse(JSON.stringify(state.draft.tasks))
+        };
+        state.submissions.push(submission);
+        state.activeIndex = state.submissions.length-1;
+        state.view = "submitted";
+        saveState(); renderScreen();
+      });
+      controls.appendChild(submitBtn);
+
+      const resetBtn=document.createElement("button"); resetBtn.type="button"; resetBtn.className="btn";
+      resetBtn.textContent="Reset checklist";
+      resetBtn.addEventListener("click",()=>{
+        if(confirm("Reset all tasks to not-done?")){
+          const truthy=(v)=>{ const s=String(v||"").trim().toLowerCase(); return v===true || s==="yes" || s==="true" || s==="1" || s==="done"; };
+          state.rows = JSON.parse(JSON.stringify(seedRows));
+          state.draft.tasks = state.rows.map(r=>({phase:r[0]||"", task:r[1]||"", done: truthy(r[2])}));
+          state.draft.notes = "";
+          saveState(); renderScreen();
+        }
+      });
+      controls.appendChild(resetBtn);
+
+      const viewSubBtn=document.createElement("button"); viewSubBtn.type="button"; viewSubBtn.className="btn";
+      viewSubBtn.textContent="View submissions";
+      viewSubBtn.disabled = !state.submissions.length;
+      viewSubBtn.addEventListener("click",()=>{ state.view="submitted"; state.activeIndex=Math.max(0,state.submissions.length-1); saveState(); renderScreen(); });
+      controls.appendChild(viewSubBtn);
+
+      section.appendChild(controls);
+
+      const helper=document.createElement("div"); helper.className="helper-text";
+      helper.innerHTML=`<div class="helper-dot"></div><div>When everything is checked off, hit <strong>Submit</strong> to save this run and switch to a completed view.</div>`;
+      section.appendChild(helper);
+
+      return section;
+    }
+
+function renderYTSheet(tab){
+      if(tab && tab.id === "yt_filming_checklist" && tab.editable){
+        return renderFilmingChecklistPhased(tab);
+      }
+
       const sheetName = tab.sheet;
       const sheet = YT_BOOK.sheets[sheetName] || { headers:[], rows:[] };
       const headers = sheet.headers || [];
