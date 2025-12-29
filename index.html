@@ -125,6 +125,7 @@
     .nav-btn.active{border-color:var(--accent);background:var(--accent-soft);color:var(--text-main)}
     .nav-btn.active svg{opacity:1}
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
 <body>
   <div class="app-shell">
@@ -141,6 +142,9 @@
         </div>
         <button type="button" class="pill" onclick="exportAllCsv()">
           <span>📤 Export all data (one CSV)</span>
+        </button>
+        <button type="button" class="pill" onclick="exportAllXlsx()">
+          <span>📦 Export all data (Excel .xlsx)</span>
         </button>
       </div>
     </header>
@@ -414,7 +418,170 @@
       URL.revokeObjectURL(url);
     }
 
-    function iconSvg(kind){
+    function safeSheetName(name){
+      // Excel sheet names: max 31 chars, cannot contain : \ / ? * [ ]
+      const cleaned = String(name||"Sheet")
+        .replace(/[:\\/\?\*\[\]]/g," ")
+        .replace(/\s+/g," ")
+        .trim();
+      return (cleaned.length>31 ? cleaned.slice(0,31) : cleaned) || "Sheet";
+    }
+
+    function exportAllXlsx(){
+      if(typeof XLSX === "undefined"){
+        alert("Excel export library failed to load. If you're offline, connect once or use CSV export.");
+        return;
+      }
+
+      const wb = XLSX.utils.book_new();
+
+      const addSheet = (name, rows2d) => {
+        const ws = XLSX.utils.aoa_to_sheet(rows2d);
+        XLSX.utils.book_append_sheet(wb, ws, safeSheetName(name));
+      };
+
+      // Week Tracker
+      {
+        const state=appState.week_tracker;
+        const headers=["Category",...appConfig.weekly.days,"Weekly Summary"];
+        const rows=appConfig.weekly.rows.map(r=>{
+          const rd=[r.label];
+          appConfig.weekly.days.forEach(d=>rd.push((state.data[r.id] && state.data[r.id][d]) || ""));
+          rd.push(r.summary||"");
+          return rd;
+        });
+        addSheet("Week_Tracker", [headers, ...rows]);
+      }
+
+      // Personal Tracker
+      {
+        const s=appState.personal_tracker;
+        const headers=["Date","Sleep (hrs)","Stress (1-5)","Energy (1-5)","Mood (1-5)","Self-Care Completed (Yes/No)","Daily Movement (Yes/No)","Screen Time Control (Yes/No)","Gratitude","Intentions for Tomorrow","Wins Today","Notes"];
+        const rows=(s.entries||[]).map(r=>[r.date||"",r.sleep||"",r.stress||"",r.energy||"",r.mood||"",r.selfCare||"",r.movement||"",r.screenControl||"",r.gratitude||"",r.intentions||"",r.winsToday||"",r.notes||""]);
+        addSheet("Personal_Tracker", [headers, ...rows]);
+      }
+
+      // Highlights
+      {
+        const s=appState.highlights;
+        const headers=["Week Starting","Biggest Win","Health/Fitness Win","Disc Golf Win","YouTube Win","Vets DG Win","Guitar Win","Mindset Win","Notes"];
+        const rows=(s.entries||[]).map(r=>[r.weekStarting||"",r.biggestWin||"",r.healthWin||"",r.dgWin||"",r.ytWin||"",r.vetsWin||"",r.guitarWin||"",r.mindsetWin||"",r.notes||""]);
+        addSheet("Highlights_Wins", [headers, ...rows]);
+      }
+
+      // Month View
+      {
+        const s=appState.month_view;
+        const headers=["Month", "Overall Grade", "Weight Change (+/- lbs)", "Steps / Miles Total", "Disc Golf Sessions (#)", "Putting Avg % (C1/C1X)", "Fieldwork Sessions (#)", "Tournament Results (text)", "Mammoth Distance Total (mi)", "YouTube Uploads (#)", "YouTube Avg CTR (%)", "YouTube Subs Change", "Vet DG Events (#)", "Vet DG Membership Change", "Guitar Practice Hours", "Guitar BPM Progress (+/-)", "Mental Health Avg (1\u20135)", "Sleep Avg (hrs)", "Stress Avg (1\u20135)", "Rest Days (#)", "Work/Life Balance Score (1\u20135)", "Biggest Wins", "Biggest Challenges", "Lessons Learned", "Adjustments for Next Month", "Notes / Reflection", "Monthly Score (0\u20131)"];
+        const rows=(s.entries||[]).map(r=>[r.month||"",r.grade||"",r.weightChange||"",r.stepsMiles||"",r.dgSessions||"",r.puttingAvg||"",r.fieldworkSessions||"",r.tournResults||"",r.mammothMiles||"",r.ytUploads||"",r.ytCtr||"",r.ytSubsChange||"",r.vetEvents||"",r.vetMembersChange||"",r.guitarHours||"",r.guitarBpmDelta||"",r.mentalAvg||"",r.sleepAvg||"",r.stressAvg||"",r.restDays||"",r.workLifeScore||"",r.bigWins||"",r.challenges||"",r.lessons||"",r.adjustments||"",r.notes||"",r.monthScore||""]);
+        addSheet("Month_View", [headers, ...rows]);
+      }
+
+      // Weight Fitness
+      {
+        const s=appState.weight_fitness;
+        const headers=["Date","Weight","Steps","Did You Walk","Miles","Did You Workout","Total Calories","Notes"];
+        const rows=(s.entries||[]).map(r=>[r.date||"",r.weight||"",r.steps||"",r.didWalk||"",r.miles||"",r.didWorkout||"",r.calories||"",r.notes||""]);
+        addSheet("Weight_Fitness", [headers, ...rows]);
+      }
+
+      // Mammoth
+      {
+        const s=appState.mammoth;
+        const headers=["Week #","Long Hike Goal","Actual Long Day Distance","Goal Hit","Total Miles for the Week","Pack Weight (lb)","Hydration (Good/OK/Poor)","Fuel Tested","Terrain","Blisters (Y/N)","Gear Notes"];
+        const rows=(s.entries||[]).map(r=>[r.week||"",r.goalLong||"",r.actualLong||"",r.goalHit||"",r.totalMilesWeek||"",r.packWeight||"",r.hydration||"",r.fuelTested||"",r.terrain||"",r.blisters||"",r.gearNotes||""]);
+        addSheet("Mammoth_Tracker", [headers, ...rows]);
+      }
+
+      // Marathon Plan (reference spreadsheet)
+      {
+        addSheet("Marathon_Training_Plan", [marathonPlanRef.headers, ...marathonPlanRef.rows]);
+      }
+
+      // DG Practice
+      {
+        const s=appState.dg_practice;
+        const headers=["Date","Duration (min)","Session Type","Focus Skill","Discs Used","C1 Attempts","C1 Made","C2 Attempts","C2 Made","Forehand Reps","Backhand Reps","Fieldwork Notes","Wind","Fatigue","Result"];
+        const rows=(s.entries||[]).map(r=>[r.date||"",r.duration||"",r.sessionType||"",r.focusSkill||"",r.discs||"",r.c1Att||"",r.c1Made||"",r.c2Att||"",r.c2Made||"",r.fhReps||"",r.bhReps||"",r.notes||"",r.wind||"",r.fatigue||"",r.result||""]);
+        addSheet("DG_Practice_Log", [headers, ...rows]);
+      }
+
+      // DG Round
+      {
+        const s=appState.dg_round;
+        const headers=["Date","Course","Layout","Total Holes","Par","Score","Diff to Par","C1% (0-33ft)","C1X % 6-33ft","C2 %","Misses inside 20ft","Penalties","OBs","Lost Discs","Wind","Notes"];
+        const rows=(s.entries||[]).map(r=>[r.date||"",r.course||"",r.layout||"",r.totalHoles||"",r.par||"",r.score||"",r.diffToPar||"",r.c1Pct||"",r.c1xPct||"",r.c2Pct||"",r.miss20||"",r.penalties||"",r.obs||"",r.lostDiscs||"",r.wind||"",r.notes||""]);
+        addSheet("DG_Round_Log", [headers, ...rows]);
+      }
+
+      // DG Tournament
+      {
+        const s=appState.dg_tournament;
+        const headers=["Date","Event","Course(s)","Division","Round Scores","Total Participants","Place","C1X %","C1 %","C2 %","Missed Inside 20ft","Notes","Takeaways"];
+        const rows=(s.entries||[]).map(r=>[r.date||"",r.event||"",r.courses||"",r.division||"",r.roundScores||"",r.totalPlayers||"",r.place||"",r.c1x||"",r.c1||"",r.c2||"",r.miss20||"",r.notes||"",r.takeaways||""]);
+        addSheet("DG_Tournament_Log", [headers, ...rows]);
+      }
+
+      // VetsDG
+      {
+        const s=appState.vetsdg;
+        const headers=["Date","Entry Type","Event Name/Organization","Category","Sponsors","Outreach","Attendance","Donation","Contact Status","Notes"];
+        const rows=(s.entries||[]).map(r=>[r.date||"",r.entryType||"",r.eventName||"",r.category||"",r.sponsors||"",r.outreach||"",r.attendance||"",r.donation||"",r.contactStatus||"",r.notes||""]);
+        addSheet("VetsDG_Tracker", [headers, ...rows]);
+      }
+
+      // YouTube tracker
+      {
+        const s=appState.yt_tracker;
+        const headers=["Week#","Title","Upload Date","Length","Video Type","Category","Subcategory","Hook","Thumbnail","Topic","CTR %","Average View Duration","Average View %","7 Day View","Total View","Sub Change","Video Score","Notes"];
+        const rows=(s.entries||[]).map(r=>[r.week||"",r.title||"",r.uploadDate||"",r.length||"",r.videoType||"",r.category||"",r.subcategory||"",r.hook||"",r.thumbnail||"",r.topic||"",r.ctr||"",r.avgViewDur||"",r.avgViewPct||"",r.view7||"",r.totalView||"",r.subChange||"",r.videoScore||"",r.notes||""]);
+        addSheet("YouTube_Tracker", [headers, ...rows]);
+      }
+
+      // Ideas
+      {
+        const s=appState.yt_ideas;
+        const headers=["Skill Tutorial","Gear Review","Course Gear","Lifestyle","Beginner Tips","Challenge","Experimentation","Quick Tip","20 Video Ideas"];
+        const rows=(s.entries||[]).map(r=>[r.skill||"",r.gear||"",r.courseGear||"",r.lifestyle||"",r.beginner||"",r.challenge||"",r.experimentation||"",r.quick||"",r.ideas||""]);
+        addSheet("Youtube_Video_Ideas", [headers, ...rows]);
+      }
+
+      // Long template
+      {
+        const s=appState.yt_long_template;
+        const headers=["Long Script Template","Example"];
+        const rows=(s.entries||[]).map(r=>[r.template||"",r.example||""]);
+        addSheet("Long_Script_Template", [headers, ...rows]);
+      }
+
+      // Short template
+      {
+        const s=appState.yt_short_template;
+        const headers=["Template","Example of Template"];
+        const rows=(s.entries||[]).map(r=>[r.template||"",r.example||""]);
+        addSheet("Short_Script_Template", [headers, ...rows]);
+      }
+
+      // Guitar
+      {
+        const s=appState.guitar;
+        const headers=["Date","Practice Length (mins)","Focus Area","Technique Skill","BPM Goal","BPM Achieved","BPM Success %","Song/Exercise","Difficulty (1-5)","Feeling","Notes"];
+        const rows=(s.entries||[]).map(r=>[r.date||"",r.length||"",r.focus||"",r.technique||"",r.bpmGoal||"",r.bpmAchieved||"",r.bpmSuccess||"",r.song||"",r.difficulty||"",r.feeling||"",r.notes||""]);
+        addSheet("GuitarPractice_Tracker", [headers, ...rows]);
+      }
+
+      // Certs
+      {
+        const s=appState.certs;
+        const headers=["Date","Cert (CRISC/PMP)","Domain/Topic","Study Time (min)","Practice Qs %","Practice Exam Name","Score","Weak Areas","Notes"];
+        const rows=(s.entries||[]).map(r=>[r.date||"",r.cert||"",r.domain||"",r.studyTime||"",r.practicePct||"",r.examName||"",r.score||"",r.weakAreas||"",r.notes||""]);
+        addSheet("Certs_Tracker", [headers, ...rows]);
+      }
+
+      XLSX.writeFile(wb, "Yearly_Life_Betterment_All.xlsx");
+    }
+
+function iconSvg(kind){
       if(kind==="life")return `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20h14M5 10h14M5 4h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg>`;
       if(kind==="health")return `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-6-4.35-9-8.4C1 9 2.5 5.5 6 5.5c2 0 3.5 1.5 3.9 2.1C10.5 7 12 5.5 14 5.5c3.5 0 5 3.5 3 7.1-3 4.05-9 8.4-9 8.4z" fill="none" stroke="currentColor" stroke-width="2"></path></svg>`;
       if(kind==="disc")return `<svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="7" rx="8" ry="3" fill="none" stroke="currentColor" stroke-width="2"></ellipse><path d="M4 7v6c0 1.66 3.58 3 8 3s8-1.34 8-3V7" fill="none" stroke="currentColor" stroke-width="2"></path><path d="M4 13v4c0 1.66 3.58 3 8 3s8-1.34 8-3v-4" fill="none" stroke="currentColor" stroke-width="2"></path></svg>`;
