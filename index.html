@@ -171,8 +171,7 @@
         { id: "life", label: "Life & Reflection", icon: "life", tabs: [
           { id: "week_tracker", label: "Week Tracker", type: "weekGrid" },
           { id: "personal_tracker", label: "Daily Personal", type: "log_personal" },
-          { id: "highlights", label: "Weekly Wins", type: "log_highlights" },
-          { id: "month_view", label: "Month View", type: "log_month" }
+          { id: "highlights", label: "Weekly Wins", type: "log_highlights" }
         ]},
         { id: "health", label: "Health & Fitness", icon: "health", tabs: [
           { id: "weight_fitness", label: "Weight & Steps", type: "log_weight" },
@@ -371,14 +370,6 @@
         addSection("Highlights_Wins",headers,rows);
       }
 
-      // Month View
-      {
-        const s=appState.month_view;
-        const headers=["Month","Overall Grade","Weight Change (+/- lbs)","Steps / Miles Total","Disc Golf Sessions (#)","Putting Avg % (C1/C1X)","Fieldwork Sessions (#)","Tournament Results (text)","Mammoth Distance Total (mi)","YouTube Uploads (#)","YouTube Avg CTR (%)","YouTube Subs Change","Vet DG Events (#)","Vet DG Membership Change","Guitar Practice Hours","Guitar BPM Progress (+/-)","Mental Health Avg (1–5)","Sleep Avg (hrs)","Stress Avg (1–5)","Rest Days (#)","Work/Life Balance Score (1–5)","Biggest Wins","Biggest Challenges","Lessons Learned","Adjustments for Next Month","Notes / Reflection","Monthly Score (0–1)"];
-        const rows=(s.entries||[]).map(r=>[r.month||"",r.grade||"",r.weightChange||"",r.stepsMiles||"",r.dgSessions||"",r.puttingAvg||"",r.fieldworkSessions||"",r.tournResults||"",r.mammothMiles||"",r.ytUploads||"",r.ytCtr||"",r.ytSubsChange||"",r.vetEvents||"",r.vetMembersChange||"",r.guitarHours||"",r.guitarBpmDelta||"",r.mentalAvg||"",r.sleepAvg||"",r.stressAvg||"",r.restDays||"",r.workLifeScore||"",r.bigWins||"",r.challenges||"",r.lessons||"",r.adjustments||"",r.notes||"",r.monthScore||""]);
-        addSection("Month_View",headers,rows);
-      }
-
       // Weight Fitness
       {
         const s=appState.weight_fitness;
@@ -542,14 +533,6 @@
         const headers=["Week Starting","Biggest Win","Health/Fitness Win","Disc Golf Win","YouTube Win","Vets DG Win","Guitar Win","Mindset Win","Notes"];
         const rows=(s.entries||[]).map(r=>[r.weekStarting||"",r.biggestWin||"",r.healthWin||"",r.dgWin||"",r.ytWin||"",r.vetsWin||"",r.guitarWin||"",r.mindsetWin||"",r.notes||""]);
         addSheet("Highlights_Wins", [headers, ...rows]);
-      }
-
-      // Month View
-      {
-        const s=appState.month_view;
-        const headers=["Month", "Overall Grade", "Weight Change (+/- lbs)", "Steps / Miles Total", "Disc Golf Sessions (#)", "Putting Avg % (C1/C1X)", "Fieldwork Sessions (#)", "Tournament Results (text)", "Mammoth Distance Total (mi)", "YouTube Uploads (#)", "YouTube Avg CTR (%)", "YouTube Subs Change", "Vet DG Events (#)", "Vet DG Membership Change", "Guitar Practice Hours", "Guitar BPM Progress (+/-)", "Mental Health Avg (1\u20135)", "Sleep Avg (hrs)", "Stress Avg (1\u20135)", "Rest Days (#)", "Work/Life Balance Score (1\u20135)", "Biggest Wins", "Biggest Challenges", "Lessons Learned", "Adjustments for Next Month", "Notes / Reflection", "Monthly Score (0\u20131)"];
-        const rows=(s.entries||[]).map(r=>[r.month||"",r.grade||"",r.weightChange||"",r.stepsMiles||"",r.dgSessions||"",r.puttingAvg||"",r.fieldworkSessions||"",r.tournResults||"",r.mammothMiles||"",r.ytUploads||"",r.ytCtr||"",r.ytSubsChange||"",r.vetEvents||"",r.vetMembersChange||"",r.guitarHours||"",r.guitarBpmDelta||"",r.mentalAvg||"",r.sleepAvg||"",r.stressAvg||"",r.restDays||"",r.workLifeScore||"",r.bigWins||"",r.challenges||"",r.lessons||"",r.adjustments||"",r.notes||"",r.monthScore||""]);
-        addSheet("Month_View", [headers, ...rows]);
       }
 
       // Weight Fitness
@@ -727,7 +710,6 @@ function iconSvg(kind){
         case "yt_sheet": node=renderYTSheet(tab); break;
         case "log_personal": node=renderPersonalTracker(); break;
         case "log_highlights": node=renderHighlights(); break;
-        case "log_month": node=renderMonthView(); break;
         case "log_weight": node=renderWeightFitness(); break;
         case "log_mammoth": node=renderMammoth(); break;
         case "ref_marathon": node=renderMarathonPlanRef(); break;
@@ -782,6 +764,19 @@ function iconSvg(kind){
       const state=appState[tabId];
       const numericRowIds=new Set(["hike","weight","water","sleep","mm_distance","mm_pack_weight"]);
 
+      const rowGroups = [
+        { label: "Fitness", ids: ["strength","walk","hike","weight","water","sleep","mm_distance","mm_pack_weight"] },
+        { label: "Disc Golf", ids: ["dg_practice","dg_round","vets_local","vets_national"] },
+        { label: "Content (YouTube)", ids: ["yt_plan","yt_shoot","yt_edit","yt_upload"] },
+        { label: "Skills + Study", ids: ["guitar","crisc","pmp"] },
+        { label: "Fuel + Mindset", ids: ["snacks","mental_reset"] }
+      ];
+      const rowById = Object.fromEntries(appConfig.weekly.rows.map(r=>[r.id,r]));
+      const orderedRows = rowGroups.flatMap(g=>g.ids.map(id=>rowById[id]).filter(Boolean));
+      const seen = new Set(orderedRows.map(r=>r.id));
+      // Append any rows not captured above (future-proof)
+      appConfig.weekly.rows.forEach(r=>{ if(!seen.has(r.id)) orderedRows.push(r); });
+
       const section=document.createElement("section"); section.className="card";
       const header=document.createElement("div"); header.className="card-header";
       header.innerHTML=`<div><h2>Weekly Habit Grid</h2><span>Numeric rows + Yes/No habits.</span></div>
@@ -798,7 +793,20 @@ function iconSvg(kind){
       const tbody=document.createElement("tbody");
       let overallTotal=0;
 
-      appConfig.weekly.rows.forEach(row=>{
+      const dayCount = appConfig.weekly.days.length;
+      const insertGroupHeader = (label)=>{
+        const tr=document.createElement("tr");
+        tr.innerHTML = `<td colspan="${dayCount+2}" style="text-align:left;padding:8px 10px;font-size:.78rem;font-weight:650;color:var(--text-main);background:rgba(34,197,94,.10);border-bottom:1px solid rgba(31,41,55,.9)">${label}</td>`;
+        tbody.appendChild(tr);
+      };
+      const groupFirstRow = new Map();
+      rowGroups.forEach(g=>{
+        const first = g.ids.find(id=>rowById[id]);
+        if(first) groupFirstRow.set(first, g.label);
+      });
+
+      orderedRows.forEach(row=>{
+        if(groupFirstRow.has(row.id)) insertGroupHeader(groupFirstRow.get(row.id));
         const tr=document.createElement("tr");
         const label=document.createElement("td"); label.className="category-label";
         label.innerHTML=row.label+(row.summary?`<span>${row.summary}</span>`:"");
@@ -868,6 +876,22 @@ function iconSvg(kind){
       });
       controls.appendChild(exportBtn);
 
+
+      const submitBtn=document.createElement("button"); submitBtn.type="button"; submitBtn.className="btn btn-primary";
+      submitBtn.textContent="Submit Week (save + reset)";
+      submitBtn.addEventListener("click",()=>{
+        if(!confirm("Submit this week and clear the grid for next week?")) return;
+        // archive submission
+        if(!state.submissions) state.submissions=[];
+        state.submissions.push({ submittedAt:new Date().toISOString(), weekLabel: state.weekLabel||"", data: JSON.parse(JSON.stringify(state.data||{})) });
+        // reset for next week
+        state.data={};
+        const nextLabel=prompt("Optional: set next week's label (or leave blank).", "");
+        state.weekLabel = (nextLabel!==null && nextLabel.trim()!=="") ? nextLabel.trim() : "This Week";
+        saveState(); renderScreen();
+      });
+      controls.appendChild(submitBtn);
+
       const clearBtn=document.createElement("button"); clearBtn.type="button"; clearBtn.className="btn btn-danger"; clearBtn.textContent="Clear week";
       clearBtn.addEventListener("click",()=>{ if(confirm("Clear all values for this week?")){ appState[tabId]={weekLabel:state.weekLabel,data:{}}; saveState(); renderScreen(); }});
       controls.appendChild(clearBtn);
@@ -878,8 +902,7 @@ function iconSvg(kind){
       section.appendChild(helper);
 
       const analytics=document.createElement("div"); analytics.className="analytics-grid";
-      analytics.innerHTML=`<div class="analytics-card"><div class="analytics-label">Total numeric entries</div><div class="analytics-value">${overallTotal?overallTotal.toFixed(1):"0.0"}</div></div>
-        <div class="analytics-card"><div class="analytics-label">Tracked categories</div><div class="analytics-value">${appConfig.weekly.rows.length}</div></div>`;
+      analytics.innerHTML=`<div class="analytics-card"><div class="analytics-label">Tracked categories</div><div class="analytics-value">${appConfig.weekly.rows.length}</div></div>`;
       section.appendChild(analytics);
 
       setTimeout(()=>{
@@ -919,9 +942,9 @@ function iconSvg(kind){
         const tr=document.createElement("tr");
         tr.appendChild(makeCell(makeDateInput(row.date,v=>{row.date=v;saveState();})));
         tr.appendChild(makeCell(makeNumberInput(row.sleep,"0.1","0",v=>{row.sleep=v;saveState();})));
-        tr.appendChild(makeCell(makeNumberInput(row.stress,"1","1",v=>{row.stress=v;saveState();})));
-        tr.appendChild(makeCell(makeNumberInput(row.energy,"1","1",v=>{row.energy=v;saveState();})));
-        tr.appendChild(makeCell(makeNumberInput(row.mood,"1","1",v=>{row.mood=v;saveState();})));
+        tr.appendChild(makeCell(makeSelect(["","1","2","3","4","5"],row.stress,v=>{row.stress=v;saveState();})));
+        tr.appendChild(makeCell(makeSelect(["","1","2","3","4","5"],row.energy,v=>{row.energy=v;saveState();})));
+        tr.appendChild(makeCell(makeSelect(["","1","2","3","4","5"],row.mood,v=>{row.mood=v;saveState();})));
         tr.appendChild(makeCell(makeSelect(["","Yes","No"],row.selfCare,v=>{row.selfCare=v;saveState();})));
         tr.appendChild(makeCell(makeSelect(["","Yes","No"],row.movement,v=>{row.movement=v;saveState();})));
         tr.appendChild(makeCell(makeSelect(["","Yes","No"],row.screenControl,v=>{row.screenControl=v;saveState();})));
@@ -1013,46 +1036,6 @@ function iconSvg(kind){
 
       section.appendChild(controls);
       return section;
-    }
-
-    function renderMonthView(){
-      // quick + usable version: generic
-      return renderGenericLog({
-        tabId:"month_view",
-        title:"Month View",
-        subtitle:"One row per month summary.",
-        exportFilename:"Month_View",
-        addDefaults:()=>({}),
-        columns:[
-          {key:"month",label:"Month",type:"text"},
-          {key:"grade",label:"Grade",type:"text"},
-          {key:"weightChange",label:"Weight Δ",type:"number",step:"0.1",min:"-999"},
-          {key:"stepsMiles",label:"Steps/Miles",type:"text"},
-          {key:"dgSessions",label:"DG Sessions",type:"number",step:"1",min:"0"},
-          {key:"puttingAvg",label:"Putting Avg",type:"text"},
-          {key:"fieldworkSessions",label:"Fieldwork",type:"number",step:"1",min:"0"},
-          {key:"tournResults",label:"Tourn Results",type:"textarea"},
-          {key:"mammothMiles",label:"Mammoth Miles",type:"number",step:"0.1",min:"0"},
-          {key:"ytUploads",label:"YT Uploads",type:"number",step:"1",min:"0"},
-          {key:"ytCtr",label:"YT CTR",type:"number",step:"0.1",min:"0"},
-          {key:"ytSubsChange",label:"YT Subs Δ",type:"number",step:"1",min:"-999"},
-          {key:"vetEvents",label:"Vet Events",type:"number",step:"1",min:"0"},
-          {key:"vetMembersChange",label:"Vet Members Δ",type:"number",step:"1",min:"-999"},
-          {key:"guitarHours",label:"Guitar Hours",type:"number",step:"0.1",min:"0"},
-          {key:"guitarBpmDelta",label:"Guitar BPM Δ",type:"number",step:"1",min:"-999"},
-          {key:"mentalAvg",label:"Mental Avg",type:"number",step:"0.1",min:"0"},
-          {key:"sleepAvg",label:"Sleep Avg",type:"number",step:"0.1",min:"0"},
-          {key:"stressAvg",label:"Stress Avg",type:"number",step:"0.1",min:"0"},
-          {key:"restDays",label:"Rest Days",type:"number",step:"1",min:"0"},
-          {key:"workLifeScore",label:"Work/Life",type:"number",step:"0.1",min:"0"},
-          {key:"bigWins",label:"Wins",type:"textarea"},
-          {key:"challenges",label:"Challenges",type:"textarea"},
-          {key:"lessons",label:"Lessons",type:"textarea"},
-          {key:"adjustments",label:"Adjustments",type:"textarea"},
-          {key:"notes",label:"Notes",type:"textarea"},
-          {key:"monthScore",label:"Score (0–1)",type:"number",step:"0.01",min:"0"}
-        ]
-      });
     }
 
     function renderWeightFitness(){
